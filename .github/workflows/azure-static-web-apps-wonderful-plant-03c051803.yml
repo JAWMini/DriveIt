@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        app_name: ['DriveIt', 'DriveItAPI']  # Nazwy aplikacji na Azure
+        app_name: ['DriveItJAW', 'DriveItAPI']  # Nazwy aplikacji na Azure
         package_path: ['DriveIt/DriveIt.csproj', 'DriveItAPI/DriveItAPI.csproj']  # Ścieżki do projektów .csproj
 
     steps:
