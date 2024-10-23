@@ -1,46 +1,48 @@
-name: Azure Static Web Apps CI/CD
+name: Deploy Two .NET Projects to Azure
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
+      - main  # uruchamiaj pipeline po puszu na branch main
+  workflow_dispatch:  # opcja manualnego uruchamiania z GitHub UI
 
 jobs:
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  build-and-deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_PLANT_03C051803 }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-          action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "Client" # App source code path
-          api_location: "Api" # Api source code path - optional
-          output_location: "wwwroot" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
 
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
+    strategy:
+      matrix:
+        app_name: ['DriveIt', 'DriveItAPI']  # Nazwy aplikacji na Azure
+        package_path: ['DriveIt/DriveIt.csproj', 'DriveItAPI/DriveItAPI.csproj']  # Ścieżki do projektów .csproj
+
     steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_PLANT_03C051803 }}
-          action: "close"
+    # Krok 1: Checkout repozytorium
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Krok 2: Zainstaluj .NET Core SDK
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x'  # Upewnij się, że jest to wersja .NET używana w Twoim projekcie
+
+    # Krok 3: Przywróć zależności NuGet
+    - name: Restore dependencies
+      run: dotnet restore ${{ matrix.package_path }}
+
+    # Krok 4: Zbuduj aplikację
+    - name: Build application
+      run: dotnet build ${{ matrix.package_path }} --configuration Release --no-restore
+
+    # Krok 5: Publikuj aplikację
+    - name: Publish application
+      run: dotnet publish ${{ matrix.package_path }} --configuration Release --output ./publish_output
+
+    # Krok 6: Deploy do Azure
+    - name: 'Deploy to Azure Web App'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ matrix.app_name }}  # Nazwa aplikacji w Azure App Service
+        slot-name: 'production'  # Użyj innego slotu jeśli masz taką konfigurację
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Tajny klucz z profilu publikacji
+        package: ./publish_output
