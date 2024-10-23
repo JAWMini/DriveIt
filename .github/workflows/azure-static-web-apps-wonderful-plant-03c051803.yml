@@ -18,6 +18,10 @@ jobs:
       matrix:
         app_name: ['DriveIt', 'DriveItAPI']  # Nazwy aplikacji na Azure
         package_path: ['DriveIt/DriveIt.csproj', 'DriveItAPI/DriveItAPI.csproj']  # Ścieżki do projektów .csproj
+        azure_static_web_apps_api_token: 
+        - ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ICY_BUSH_0B7505703 }} 
+        - ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_BAY_02CB21D03 }} 
+          
 
     steps:
    
