@@ -16,7 +16,8 @@ jobs:
     
     strategy:
       matrix:
-        app_location: ['./publish_output/DriveIt', './publish_output/DriveItAPI']
+        app_location: ['DriveIt','DriveItAPI']
+        app_artifact_location: ['./publish_output/DriveIt', './publish_output/DriveItAPI']
         package_path: ['DriveIt/DriveIt.csproj', 'DriveItAPI/DriveItAPI.csproj']  # Ścieżki do projektów .csproj
         azure_static_web_apps_api_token: ['AZURE_STATIC_WEB_APPS_API_TOKEN_ICY_BUSH_0B7505703', 'AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_BAY_02CB21D03'] 
           
@@ -43,7 +44,7 @@ jobs:
 
     # Krok 5: Publikuj aplikację
     - name: Publish application
-      run: dotnet publish ${{ matrix.package_path }} --configuration Release --output ${{matrix.app_location}}
+      run: dotnet publish ${{ matrix.package_path }} --configuration Release --output ${{matrix.app_artifact_location}}
 
     # Krok 6: Deploy do Azure
     - name: 'Deploy to Azure Web App'
@@ -51,6 +52,7 @@ jobs:
       with:
         azure_static_web_apps_api_token: ${{ secrets[matrix.azure_static_web_apps_api_token] }}
         app_location: ${{ matrix.app_location }}
+        app_artifact_location: ${{ matrix.app_artifact_location }}
         action: "upload"
        
 
