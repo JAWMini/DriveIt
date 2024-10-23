@@ -5,11 +5,15 @@ on:
     branches:
       - main  # uruchamiaj pipeline po puszu na branch main
   workflow_dispatch:  # opcja manualnego uruchamiania z GitHub UI
-
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    
     strategy:
       matrix:
         app_name: ['DriveItJAW', 'DriveItAPI']  # Nazwy aplikacji na Azure
@@ -46,3 +50,10 @@ jobs:
         slot-name: 'production'  # Użyj innego slotu jeśli masz taką konfigurację
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Tajny klucz z profilu publikacji
         package: ./publish_output
+
+    - name: Close Pull Request
+      id: closepullrequest
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_PLANT_03C051803 }}
+        action: "close"
