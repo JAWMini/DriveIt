@@ -16,16 +16,11 @@ jobs:
     
     strategy:
       matrix:
-        app_name: ['DriveItJAW', 'DriveItAPI']  # Nazwy aplikacji na Azure
+        app_name: ['DriveIt', 'DriveItAPI']  # Nazwy aplikacji na Azure
         package_path: ['DriveIt/DriveIt.csproj', 'DriveItAPI/DriveItAPI.csproj']  # Ścieżki do projektów .csproj
 
     steps:
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+   
     # Krok 1: Checkout repozytorium
     - name: Checkout code
       uses: actions/checkout@v3
