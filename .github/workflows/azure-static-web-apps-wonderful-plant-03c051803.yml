@@ -47,12 +47,12 @@ jobs:
 
     # Krok 6: Deploy do Azure
     - name: 'Deploy to Azure Web App'
-      uses: azure/webapps-deploy@v2
+      uses: Azure/static-web-apps-deploy@v1
       with:
         azure_static_web_apps_api_token: ${{ secrets[matrix.azure_static_web_apps_api_token] }}
         app-name: ${{ matrix.app_name }}  # Nazwa aplikacji w Azure App Service
         slot-name: 'production'  # Użyj innego slotu jeśli masz taką konfigurację
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}  # Tajny klucz z profilu publikacji
+        
         package: ./publish_output
 
     - name: Close Pull Request
