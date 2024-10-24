@@ -25,13 +25,13 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ./DriveIt
+        run: dotnet publish -c Release -o ./DriveIt/DriveIt
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: DriveIt
+          path: ./DriveIt/DriveIt
 
   deploy:
     runs-on: windows-latest
