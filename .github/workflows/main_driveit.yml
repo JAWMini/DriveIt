@@ -22,7 +22,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build '.DriveIt/DriveIt.csproj' --configuration Release
+        run: dotnet build './DriveIt/DriveIt.csproj' --configuration Release
 
       - name: dotnet publish
         run: dotnet publish './DriveIt/DriveIt.csproj' -c Release -o ./DriveIt
