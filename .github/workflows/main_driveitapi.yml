@@ -25,7 +25,7 @@ jobs:
         run: dotnet build './DriveItAPI/DriveItAPI.csproj' --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ./DriveItAPI
+        run: dotnet publish './DriveItAPI/DriveItAPI.csproj' -c Release -o ./DriveItAPI
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
