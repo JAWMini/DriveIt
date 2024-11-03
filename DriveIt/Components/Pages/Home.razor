@@ -9,10 +9,13 @@
 
 @* Welcome to your new app. *@
 
-<div style="display: flex; gap: 10px;">
+
+
+
+@* <div style="display: flex; gap: 10px;">
     <select class="form-select" @bind=SelectedBrand>
         <option selected value="">Wybierz markę</option>
-        @foreach (string brand in cars.Select(car => car.Brand).Distinct())
+        @foreach (string brand in AvailableBrands)
         {
             <option value=@brand>@brand</option>
         }
@@ -20,13 +23,17 @@
 
     <select class="form-select" @bind=SelectedModel>
         <option selected value="">Wybierz model</option>
-        @foreach (string model in cars.Where(car => car.Brand == SelectedBrand).Select(car => car.Model).Distinct())
+        @foreach (string model in AvailableModels)
         {
             <option value=@model>@model</option>
         }
     </select>
-</div>
+</div> *@
 
+
+
+<div class="row">
+    <div class="col-md-9">
 <table class="table table-striped">
     <thead>
         <tr>
@@ -46,35 +53,61 @@
         }
     </tbody>
 </table>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Filtrowanie</h4>
+                <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
+                @foreach (var brand in Cars.Select(c => c.Brand).Distinct())
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" checked="@(SelectedModels[brand].Count > 0)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
+                        <label class="form-check-label" for="@brand">@brand</label>
+                    </div>
+                    var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
+                    <div style="margin-left: 20px;">
+                        @foreach (var model in models)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedModels[brand].Contains(model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
+                                <label class="form-check-label" for="@model">@model</label>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <h5 class="mt-4">Rok produkcji</h5>
+                <div class="mb-3">
+                    <label for="minYear" class="form-label">Minimalny rok:</label>
+                    <input type="number" class="form-control" id="minYear" @bind="MinYear" />
+                </div>
+                <div class="mb-3">
+                    <label for="maxYear" class="form-label">Maksymalny rok:</label>
+                    <input type="number" class="form-control" id="maxYear" @bind="MaxYear" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 @code
 {
     // Dodać zapytanie do kontrolera. To tylko szablon
 
-    List<Car> cars = [];
+    List<Car> Cars = [];
 
-    string _selectedBrand = string.Empty;
-    string SelectedBrand
-    {
-        get => _selectedBrand;
-        set
-        {
-            _selectedBrand = value;
-            SelectedModel = string.Empty;
-        }
-    }
-    string SelectedModel { get; set; } = string.Empty;
+    int MinYear { get; set; } = 0;
+    int MaxYear { get; set; } = 0;
 
-    IEnumerable<Car> FilteredCars
-    {
-        get
-        {
-            return from car in cars
-                   where (string.IsNullOrEmpty(SelectedBrand) || SelectedBrand == car.Brand) && (string.IsNullOrEmpty(SelectedModel) || SelectedModel == car.Model)
-                   select car;
-        }
-    }
+    Dictionary<string, HashSet<string>> SelectedModels = [];
+
+    int SelectedBrandsCount => SelectedModels.Where(p => p.Value.Count > 0).Count();
+
+    IEnumerable<Car> FilteredCars => (from car in Cars
+                                      where (SelectedBrandsCount == 0 || SelectedModels[car.Brand].Contains(car.Model)) && (MinYear == 0 || car.Year >= MinYear) && (MaxYear == 0 || car.Year <= MaxYear)
+                                      select car);
 
 
     private void NavigateToCarDetails(Car car)
@@ -84,10 +117,39 @@
         NavigationManager.NavigateTo($"/Counter");
     }
 
+
+
+    // Funkcja do zaznaczania/odznaczania marek
+    private void ToggleBrandSelection(string brand, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs) isChecked)?.Value! == true)
+        {
+            var modelsToAdd = Cars.Where(car => car.Brand == brand).Select(car =>car.Model);
+            SelectedModels[brand].UnionWith(modelsToAdd);
+        }
+        else
+        {
+            SelectedModels[brand].Clear();
+        }
+    }
+
+    // Funkcja do zaznaczania/odznaczania modeli
+    private void ToggleModelSelection(string brand, string model, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedModels[brand].Add(model);
+        }
+        else
+        {
+            SelectedModels[brand].Remove(model);
+        }
+    }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        cars = new List<Car>
+        Cars = new List<Car>
         {
             new Car("Toyota", "Corolla", 2010, new Guid()),
             new Car("Toyota", "Camry", 2012, new Guid()),
@@ -116,5 +178,9 @@
             new Car("Honda", "Pilot", 2023, new Guid()),
             new Car("Audi", "A3", 2020, new Guid())
         };
+
+
+        SelectedModels = Cars.Select(car => new { b = car.Brand, hs = new HashSet<string>() }).DistinctBy(p => p.b).ToDictionary(p => p.b, p => p.hs);
+
     }
 }
