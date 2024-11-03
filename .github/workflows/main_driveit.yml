@@ -4,10 +4,9 @@
 name: Build and deploy ASP.Net Core app to Azure Web App - DriveIt
 
 on:
-  #push:
-   # branches:
-     #- main
-  workflow_call:
+  push:
+    branches:
+     - main
   workflow_dispatch:
 
 jobs:
