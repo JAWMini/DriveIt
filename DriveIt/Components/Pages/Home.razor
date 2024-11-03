@@ -20,7 +20,7 @@
 
     <select class="form-select" @bind=SelectedModel>
         <option selected value="">Wybierz model</option>
-        @foreach (string model in cars.Where(car => car.Brand == SelectedBrand).Select(car => car.Model))
+        @foreach (string model in cars.Where(car => car.Brand == SelectedBrand).Select(car => car.Model).Distinct())
         {
             <option value=@model>@model</option>
         }
