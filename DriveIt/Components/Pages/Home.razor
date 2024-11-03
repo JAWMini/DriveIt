@@ -1,7 +1,120 @@
 ﻿@page "/"
+@using DriveIt.Model
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+@* Welcome to your new app. *@
+
+<div style="display: flex; gap: 10px;">
+    <select class="form-select" @bind=SelectedBrand>
+        <option selected value="">Wybierz markę</option>
+        @foreach (string brand in cars.Select(car => car.Brand).Distinct())
+        {
+            <option value=@brand>@brand</option>
+        }
+    </select>
+
+    <select class="form-select" @bind=SelectedModel>
+        <option selected value="">Wybierz model</option>
+        @foreach (string model in cars.Where(car => car.Brand == SelectedBrand).Select(car => car.Model))
+        {
+            <option value=@model>@model</option>
+        }
+    </select>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Marka</th>
+            <th>Model</th>
+            <th>Rok produkcji</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Car car in FilteredCars)
+        {
+            <tr @onclick="() => NavigateToCarDetails(car)" style="cursor: pointer;">
+                <td>@car.Brand</td>
+                <td>@car.Model</td>
+                <td>@car.Year</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code
+{
+    // Dodać zapytanie do kontrolera. To tylko szablon
+
+    List<Car> cars = [];
+
+    string _selectedBrand = string.Empty;
+    string SelectedBrand
+    {
+        get => _selectedBrand;
+        set
+        {
+            _selectedBrand = value;
+            SelectedModel = string.Empty;
+        }
+    }
+    string SelectedModel { get; set; } = string.Empty;
+
+    IEnumerable<Car> FilteredCars
+    {
+        get
+        {
+            return from car in cars
+                   where (string.IsNullOrEmpty(SelectedBrand) || SelectedBrand == car.Brand) && (string.IsNullOrEmpty(SelectedModel) || SelectedModel == car.Model)
+                   select car;
+        }
+    }
+
+
+    private void NavigateToCarDetails(Car car)
+    {
+        // Przekierowanie do innej strony, np. na podstawie identyfikatora samochodu
+        // NavigationManager.NavigateTo($"/car-details/{carId}");
+        NavigationManager.NavigateTo($"/Counter");
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        cars = new List<Car>
+        {
+            new Car("Toyota", "Corolla", 2010, new Guid()),
+            new Car("Toyota", "Camry", 2012, new Guid()),
+            new Car("Toyota", "RAV4", 2020, new Guid()),
+            new Car("Honda", "Civic", 2015, new Guid()),
+            new Car("Honda", "Accord", 2018, new Guid()),
+            new Car("Honda", "CR-V", 2021, new Guid()),
+            new Car("Ford", "Focus", 2018, new Guid()),
+            new Car("Ford", "Fiesta", 2016, new Guid()),
+            new Car("Ford", "Mustang", 2020, new Guid()),
+            new Car("BMW", "X5", 2020, new Guid()),
+            new Car("BMW", "X3", 2017, new Guid()),
+            new Car("BMW", "3 Series", 2015, new Guid()),
+            new Car("Audi", "A4", 2022, new Guid()),
+            new Car("Audi", "Q5", 2019, new Guid()),
+            new Car("Audi", "A6", 2016, new Guid()),
+            new Car("Mercedes", "C-Class", 2019, new Guid()),
+            new Car("Mercedes", "E-Class", 2021, new Guid()),
+            new Car("Mercedes", "GLC", 2020, new Guid()),
+            new Car("Volkswagen", "Golf", 2018, new Guid()),
+            new Car("Volkswagen", "Passat", 2015, new Guid()),
+            new Car("Volkswagen", "Tiguan", 2017, new Guid()),
+            new Car("Toyota", "Yaris", 2021, new Guid()),
+            new Car("Toyota", "Highlander", 2019, new Guid()),
+            new Car("Ford", "Explorer", 2022, new Guid()),
+            new Car("Honda", "Pilot", 2023, new Guid()),
+            new Car("Audi", "A3", 2020, new Guid())
+        };
+    }
+}
