@@ -9,11 +9,15 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+
 jobs:
   build-and-deploy:
     name: Build and deploy app and API
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
       - name: Build and deploy DriveIt
         uses: ./github/workflows/main_driveit.yml
         
