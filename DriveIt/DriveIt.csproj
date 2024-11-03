@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-DriveIt-56cd1166-0fdc-4e69-b703-b7d84423fa28</UserSecretsId>
+    <UserSecretsId>aspnet-DriveIt-d1aae83d-98e0-4078-a1a0-c692c91273b3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
