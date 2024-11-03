@@ -11,15 +11,10 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
-    name: Build and deploy app and API
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        
-      - name: Build and deploy DriveIt
-        uses: ./github/workflows/main_driveit.yml
-        
-      - name: Build and deploy DriveItAPI
-        uses: ./github/workflows/main_driveitapi.yml
+    DriveIt:
+      name: Build and deploy DriveIt
+      uses: ./.github/workflows/main_driveit.yml
+      
+    DriveItAPI:
+      name: Build and deploy DriveItAPI
+      uses: ./.github/workflows/main_driveitapi.yml
