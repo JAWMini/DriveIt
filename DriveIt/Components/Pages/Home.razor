@@ -34,30 +34,68 @@
 
 <div class="row">
     <div class="col-md-9">
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Marka</th>
-            <th>Model</th>
-            <th>Rok produkcji</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (Car car in FilteredCars)
-        {
-            <tr @onclick="() => NavigateToCarDetails(car)" style="cursor: pointer;">
-                <td>@car.Brand</td>
-                <td>@car.Model</td>
-                <td>@car.Year</td>
-            </tr>
-        }
-    </tbody>
-</table>
+            <!-- Sekcja wyboru liczby elementów na stronę -->
+@*             <div class="mb-3 d-flex justify-content-end">
+                <label class="me-2" for="itemsPerPage">Elementy na stronę:</label>
+                <select id="itemsPerPage" @bind="PageSize" class="form-select w-auto">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div> *@
+@*         <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Marka</th>
+                    <th>Model</th>
+                    <th>Rok produkcji</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Car car in PagedCars)
+                {
+                    <tr @onclick="() => NavigateToCarDetails(car)" style="cursor: pointer;">
+                        <td>@car.Brand</td>
+                        <td>@car.Model</td>
+                        <td>@car.Year</td>
+                    </tr>
+                }
+            </tbody>
+        </table> *@
+
+        <Grid TItem="Car"
+              Class="table table-striped"
+            AllowPaging="true"
+              PageSizeSelectorVisible="true"
+              PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+            AllowSorting="true"
+            Data="FilteredCars"
+            OnRowClick="OnCarClick"
+            AllowRowClick="true"
+            Responsive="true">
+
+            <GridColumns>
+                <GridColumn TItem="Car" HeaderText="Marka" SortKeySelector="item => item.Brand">@context.Brand</GridColumn>
+                <GridColumn TItem="Car" HeaderText="Model" SortKeySelector="item => item.Model">@context.Model</GridColumn>
+                <GridColumn TItem="Car" HeaderText="Rok produkcji" SortKeySelector="item => item.Year">@context.Year</GridColumn>
+            </GridColumns>
+            </Grid>
+
+@*         <Pagination ActivePageNumber="@CurrentPage"
+                    TotalPages="@TotalPages"
+                    PageChanged="@((newPageNumber) => CurrentPage = newPageNumber)"
+                    Alignment="Alignment.Center"
+                    DisplayPages="10" /> *@
     </div>
     <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
+        <button class="btn btn-secondary mb-3" @onclick="ClearFilters">Wyczyść filtry</button>
+        <Accordion>
+            <AccordionItem>
+                <TitleTemplate>
                 <h4 class="card-title">Filtrowanie</h4>
+                </TitleTemplate>
+                <Content>
                 <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
                 @foreach (var brand in Cars.Select(c => c.Brand).Distinct())
                 {
@@ -86,25 +124,33 @@
                     <label for="maxYear" class="form-label">Maksymalny rok:</label>
                     <input type="number" class="form-control" id="maxYear" @bind="MaxYear" />
                 </div>
-            </div>
-        </div>
+                    </Content>
+                </AccordionItem>
+        </Accordion>
     </div>
 </div>
+
+
+
+
 
 
 @code
 {
     // Dodać zapytanie do kontrolera. To tylko szablon
-
+    private async Task<GridDataProviderResult<Car>> CarDataProvider(GridDataProviderRequest<Car> request)
+    {
+        return await Task.FromResult(request.ApplyTo(FilteredCars));
+    }
     List<Car> Cars = [];
 
-    int MinYear { get; set; } = 0;
-    int MaxYear { get; set; } = 0;
+    int? MinYear { get; set; } = null;
+    int? MaxYear { get; set; } = null;
 
     HashSet<(string brand, string model)> SelectedBrandModels = [];
 
     IEnumerable<Car> FilteredCars => (from car in Cars
-                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && (MinYear == 0 || car.Year >= MinYear) && (MaxYear == 0 || car.Year <= MaxYear)
+                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && (MinYear is null || car.Year >= MinYear) && (MaxYear is null || car.Year <= MaxYear)
                                       select car);
 
 
@@ -113,6 +159,11 @@
         // Przekierowanie do innej strony, np. na podstawie identyfikatora samochodu
         // NavigationManager.NavigateTo($"/car-details/{carId}");
         NavigationManager.NavigateTo($"/Counter");
+    }
+
+    private void OnCarClick(GridRowEventArgs<Car> args)
+    {
+        NavigateToCarDetails(args.Item);
     }
 
 
@@ -129,6 +180,8 @@
         {
             SelectedBrandModels.RemoveWhere(car => car.brand == brand);
         }
+
+        // CurrentPage = 1;
     }
 
     // Funkcja do zaznaczania/odznaczania modeli
@@ -142,7 +195,44 @@
         {
             SelectedBrandModels.Remove((brand, model));
         }
+
+        // CurrentPage = 1;
     }
+
+
+    // private int CurrentPage = 1; // Aktualna strona
+    // private int PageSize = 5; // Liczba elementów na stronę
+    // private int TotalPages => (int)Math.Ceiling((double)FilteredCars.Count() / PageSize);
+
+    // private IEnumerable<Car> PagedCars => FilteredCars
+    //                                         .Skip((CurrentPage - 1) * PageSize)
+    //                                         .Take(PageSize);
+
+    // private void NavigateToPage(int page)
+    // {
+    //     CurrentPage = page;
+    // }
+
+    // private void NextPage()
+    // {
+    //     if (CurrentPage < TotalPages)
+    //         ++CurrentPage;
+    // }
+
+    // private void PreviousPage()
+    // {
+    //     if (CurrentPage > 1)
+    //         --CurrentPage;
+    // }
+
+    private void ClearFilters(MouseEventArgs e)
+    {
+        SelectedBrandModels.Clear();
+        MinYear = null;
+        MaxYear = null;
+    }
+
+
 
     protected override void OnInitialized()
     {
@@ -177,4 +267,5 @@
             new Car("Audi", "A3", 2020, new Guid())
         };
     }
+
 }
