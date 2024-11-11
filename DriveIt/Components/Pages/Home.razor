@@ -62,7 +62,7 @@
                 @foreach (var brand in Cars.Select(c => c.Brand).Distinct())
                 {
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" checked="@(SelectedModels[brand].Count > 0)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
+                        <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
                         <label class="form-check-label" for="@brand">@brand</label>
                     </div>
                     var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
@@ -70,7 +70,7 @@
                         @foreach (var model in models)
                         {
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@SelectedModels[brand].Contains(model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
+                                <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand && car.model == model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
                                 <label class="form-check-label" for="@model">@model</label>
                             </div>
                         }
@@ -101,12 +101,10 @@
     int MinYear { get; set; } = 0;
     int MaxYear { get; set; } = 0;
 
-    Dictionary<string, HashSet<string>> SelectedModels = [];
-
-    int SelectedBrandsCount => SelectedModels.Where(p => p.Value.Count > 0).Count();
+    HashSet<(string brand, string model)> SelectedBrandModels = [];
 
     IEnumerable<Car> FilteredCars => (from car in Cars
-                                      where (SelectedBrandsCount == 0 || SelectedModels[car.Brand].Contains(car.Model)) && (MinYear == 0 || car.Year >= MinYear) && (MaxYear == 0 || car.Year <= MaxYear)
+                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && (MinYear == 0 || car.Year >= MinYear) && (MaxYear == 0 || car.Year <= MaxYear)
                                       select car);
 
 
@@ -124,12 +122,12 @@
     {
         if ((bool)((ChangeEventArgs) isChecked)?.Value! == true)
         {
-            var modelsToAdd = Cars.Where(car => car.Brand == brand).Select(car =>car.Model);
-            SelectedModels[brand].UnionWith(modelsToAdd);
+            var modelsToAdd = Cars.Where(car => car.Brand == brand).Select(car => (brand, car.Model));
+            SelectedBrandModels.UnionWith(modelsToAdd);
         }
         else
         {
-            SelectedModels[brand].Clear();
+            SelectedBrandModels.RemoveWhere(car => car.brand == brand);
         }
     }
 
@@ -138,11 +136,11 @@
     {
         if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
         {
-            SelectedModels[brand].Add(model);
+            SelectedBrandModels.Add((brand, model));
         }
         else
         {
-            SelectedModels[brand].Remove(model);
+            SelectedBrandModels.Remove((brand, model));
         }
     }
 
@@ -178,9 +176,5 @@
             new Car("Honda", "Pilot", 2023, new Guid()),
             new Car("Audi", "A3", 2020, new Guid())
         };
-
-
-        SelectedModels = Cars.Select(car => new { b = car.Brand, hs = new HashSet<string>() }).DistinctBy(p => p.b).ToDictionary(p => p.b, p => p.hs);
-
     }
 }
