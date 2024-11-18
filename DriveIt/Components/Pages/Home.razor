@@ -72,7 +72,34 @@
     </div>
 </div>
 
-
+<Modal @ref="offers" title="Oferty" IsVerticallyCentered="true">
+    <BodyTemplate>
+        This is a vertically centered modal.
+        <table class="table">
+    <thead>
+        <tr>
+            <th>Dostawca</th>
+            <th>Cena wypożyczenia</th>
+            <th>Cena ubezpieczenia</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Offer offer in Offers)
+        {
+            <tr>
+                <td>@offer.IntegratorName</td>
+                <td>@offer.OfferDetails.RentPrice.ToString("C")</td>
+                <td>@offer.OfferDetails.InsurancePrice.ToString("C")</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="() => SendRentRequest(offer)">Rent me</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+    </BodyTemplate>
+</Modal>
 
 
 
@@ -85,6 +112,7 @@
     //     return await Task.FromResult(request.ApplyTo(FilteredCars));
     // }
     List<Car> Cars = [];
+    List<Offer> Offers = [];
 
     int? MinYear { get; set; } = null;
     int? MaxYear { get; set; } = null;
@@ -109,18 +137,18 @@
         StateHasChanged();
     }
 
-    private void NavigateToCarDetails(Car car)
+
+    // TODO: Dodać dane użytkownika
+    private void async OnCarClick(GridRowEventArgs<Car> args)
     {
-        // Przekierowanie do innej strony, np. na podstawie identyfikatora samochodu
-        // NavigationManager.NavigateTo($"/car-details/{carId}");
-        NavigationManager.NavigateTo($"/Counter");
+        OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
+        Offers = await CarService.GetOffers(offerRequest);
     }
 
-    private void OnCarClick(GridRowEventArgs<Car> args)
+    public async Task SendRentRequest(Offer offer)
     {
-        NavigateToCarDetails(args.Item);
+        await CarService.SendRentRequestAsync(offer);
     }
-
 
 
     // Funkcja do zaznaczania/odznaczania marek

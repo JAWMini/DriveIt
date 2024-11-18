@@ -1,7 +1,11 @@
-﻿using DriveIt.Model;
+﻿using DriveIt.DTOs;
+using DriveIt.Model;
+using System.Threading.Tasks;
 
 namespace DriveIt.Services
 {
+
+    // TODO: Dodanie pozostałych integratorów
     public class CarService
     {
         private readonly HttpClient _httpClient;
@@ -30,6 +34,30 @@ namespace DriveIt.Services
                 Console.WriteLine($"Błąd: {ex.Message}");
                 return [];
             }
+        }
+
+        public async Task<List<Offer>> GetOffersAsync(OfferRequestDto offerRequest)
+        {
+            string url = "offers";
+
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequest);
+
+            response.EnsureSuccessStatusCode();
+
+            OfferDto? offerDto = await response.Content.ReadFromJsonAsync<OfferDto>();
+
+            if(offerDto is null)
+                return [];
+
+
+            Offer offer = new("DriveIt", offerDto, "https://localhost:7289");
+
+            return [offer];
+        }
+
+        public async Task SendRentRequestAsync(Offer offer)
+        {
+
         }
     }
 }
