@@ -1,10 +1,16 @@
 using DriveItAPI.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Do zmiany
+builder.Services.AddDbContext<CarRentalContext>(opt =>
+    opt.UseInMemoryDatabase("CarRental"));
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
