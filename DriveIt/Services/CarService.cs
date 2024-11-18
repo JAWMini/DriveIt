@@ -36,11 +36,11 @@ namespace DriveIt.Services
             }
         }
 
-        public async Task<List<Offer>> GetOffersAsync(OfferRequestDto offerRequest)
+        public async Task<List<Offer>> GetOffersAsync(OfferRequest offerRequest)
         {
             string url = "offers";
-
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequest);
+            OfferRequestDto offerRequestDto = new(offerRequest.CarId, offerRequest.DrivingLicenseLength, offerRequest.UserAge);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequestDto);
 
             response.EnsureSuccessStatusCode();
 
@@ -49,8 +49,8 @@ namespace DriveIt.Services
             if(offerDto is null)
                 return [];
 
-
-            Offer offer = new("DriveIt", offerDto, "https://localhost:7289");
+            Offer offer = new(offerDto.Id, offerDto.RentPrice, offerDto.InsurancePrice, offerDto.OfferTimeLimit, offerDto.IntegratorName, offerDto.IntegratorUrl);
+            //Offer offer = new(offerDto);
 
             return [offer];
         }

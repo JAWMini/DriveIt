@@ -89,8 +89,8 @@
         {
             <tr>
                 <td>@offer.IntegratorName</td>
-                <td>@offer.OfferDetails.RentPrice.ToString("C")</td>
-                <td>@offer.OfferDetails.InsurancePrice.ToString("C")</td>
+                <td>@offer.RentPrice</td>
+                <td>@offer.InsurancePrice</td>
                 <td>
                     <button class="btn btn-primary" @onclick="() => SendRentRequest(offer)">Rent me</button>
                 </td>
@@ -141,7 +141,8 @@
     // TODO: Dodać dane użytkownika
     private void async OnCarClick(GridRowEventArgs<Car> args)
     {
-        OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
+        OfferRequest offerRequest = new(args.Item.Id, 5, 25);
+        // OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
         Offers = await CarService.GetOffers(offerRequest);
     }
 
