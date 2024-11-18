@@ -1,6 +1,7 @@
 using DriveIt.Components;
 using DriveIt.Components.Account;
 using DriveIt.Data;
+using DriveIt.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,10 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddBlazorBootstrap();
+
+// TODO
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7289") });
+builder.Services.AddScoped<CarService>();
 
 builder.Services.AddAuthentication(options =>
     {
