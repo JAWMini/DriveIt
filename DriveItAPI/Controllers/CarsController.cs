@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DriveItAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("cars")]
     public class CarsController : ControllerBase
     {
         private readonly CarRentalContext _db;
