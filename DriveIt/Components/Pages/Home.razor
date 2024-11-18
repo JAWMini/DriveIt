@@ -72,33 +72,35 @@
     </div>
 </div>
 
-<Modal title="Oferty" IsVerticallyCentered="true">
+<Modal @ref="OffersModal" title="Oferty" IsVerticallyCentered="true">
     <BodyTemplate>
-        This is a vertically centered modal.
         <table class="table">
-    <thead>
-        <tr>
-            <th>Dostawca</th>
-            <th>Cena wypożyczenia</th>
-            <th>Cena ubezpieczenia</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (Offer offer in Offers)
-        {
-            <tr>
-                <td>@offer.IntegratorName</td>
-                <td>@offer.RentPrice</td>
-                <td>@offer.InsurancePrice</td>
-                <td>
-                    <button class="btn btn-primary" @onclick="() => SendRentRequest(offer)">Rent me</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+            <thead>
+                <tr>
+                    <th>Dostawca</th>
+                    <th>Cena wypożyczenia</th>
+                    <th>Cena ubezpieczenia</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Offer offer in Offers)
+                {
+                    <tr>
+                        <td>@offer.IntegratorName</td>
+                        <td>@offer.RentPrice</td>
+                        <td>@offer.InsurancePrice</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => SendRentRequest(offer)">Rent me</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </BodyTemplate>
+    <FooterTemplate>
+            <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+    </FooterTemplate>
 </Modal>
 
 
@@ -113,6 +115,7 @@
     // }
     List<Car> Cars = [];
     List<Offer> Offers = [];
+    Modal OffersModal = default!;
 
     int? MinYear { get; set; } = null;
     int? MaxYear { get; set; } = null;
@@ -144,6 +147,12 @@
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
         // OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
         Offers = await CarService.GetOffersAsync(offerRequest);
+        await OffersModal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await OffersModal.HideAsync();
     }
 
     public async Task SendRentRequest(Offer offer)

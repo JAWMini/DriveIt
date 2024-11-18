@@ -43,6 +43,7 @@ namespace DriveIt.Services
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequestDto);
 
             response.EnsureSuccessStatusCode();
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             OfferDto? offerDto = await response.Content.ReadFromJsonAsync<OfferDto>();
 

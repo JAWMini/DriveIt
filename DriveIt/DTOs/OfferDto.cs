@@ -10,14 +10,14 @@
         public string IntegratorName { get; set; }
         public string IntegratorUrl { get; set; }
 
-        public OfferDto(Guid id, decimal rentPrice, decimal insurancePrice, int offerTimeLimit, string companyName, string companyUrl)
+        public OfferDto(Guid id, decimal rentPrice, decimal insurancePrice, int offerTimeLimit, string integratorName, string integratorUrl)
         {
             Id = id;
             RentPrice = rentPrice;
             InsurancePrice = insurancePrice;
             OfferTimeLimit = offerTimeLimit;
-            IntegratorName = companyName;
-            IntegratorUrl = companyUrl;
+            IntegratorName = integratorName;
+            IntegratorUrl = integratorUrl;
         }
     }
 }
