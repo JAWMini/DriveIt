@@ -1,4 +1,4 @@
-﻿namespace DriveItAPI.Data
+﻿namespace DriveItAPI.Model
 {
     public record class RentOffer(Car Car, int Days)
     {
