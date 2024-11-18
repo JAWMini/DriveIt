@@ -60,7 +60,7 @@
 
         if (result.Succeeded)
         {
-            Logger.LogInformation("User with ID '{UserId}' logged in with a recovery code.", userId);
+            Logger.LogInformation("User with Id '{UserId}' logged in with a recovery code.", userId);
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut)
@@ -70,7 +70,7 @@
         }
         else
         {
-            Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);
+            Logger.LogWarning("Invalid recovery code entered for user with Id '{UserId}' ", userId);
             message = "Error: Invalid recovery code entered.";
         }
     }

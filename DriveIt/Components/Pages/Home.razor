@@ -72,7 +72,7 @@
     </div>
 </div>
 
-<Modal @ref="offers" title="Oferty" IsVerticallyCentered="true">
+<Modal title="Oferty" IsVerticallyCentered="true">
     <BodyTemplate>
         This is a vertically centered modal.
         <table class="table">
@@ -139,11 +139,11 @@
 
 
     // TODO: Dodać dane użytkownika
-    private void async OnCarClick(GridRowEventArgs<Car> args)
+    private async Task OnCarClick(GridRowEventArgs<Car> args)
     {
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
         // OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
-        Offers = await CarService.GetOffers(offerRequest);
+        Offers = await CarService.GetOffersAsync(offerRequest);
     }
 
     public async Task SendRentRequest(Offer offer)
