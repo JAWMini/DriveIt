@@ -1,0 +1,43 @@
+﻿@page "/potwierdzenie-wypożyczenia/{ofertaId:guid}"
+@using DriveIt.Model
+@using DriveIt.Services
+
+@inject HttpClient Http
+@inject OfferService OfferService
+@inject NavigationManager Navigation
+
+<h3>Potwierdzenie wypożyczenia</h3>
+
+
+@if(offer is not null)
+{
+    <p>Akceptujesz ofertę od: <strong>@offer.IntegratorName</strong></p>
+    <p>Cena wypożyczenia za dzień: @offer.RentPrice</p>
+    <p>Cena ubezpieczenia za dzień: @offer.InsurancePrice</p>
+    <button class="btn btn-primary" @onclick="ConfirmReservation">Potwierdź wypożyczenie</button>
+}
+else
+{
+    <p>Ładowanie oferty...</p>
+}
+
+@code {
+    [Parameter]
+    public Guid ofertaId { get; set; }
+
+    private Offer? offer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        offer = await OfferService.GetOfferByIdAsync(ofertaId);
+
+        if(offer is null)
+            Navigation.NavigateTo("/404");
+    }
+
+    private async Task ConfirmReservation()
+    {
+        await OfferService.ConfirmOfferAsync(offer!);
+        Navigation.NavigateTo("/moje-wypozyczenia");
+    }
+}

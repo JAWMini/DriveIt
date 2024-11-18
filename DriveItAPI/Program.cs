@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Do zmiany
+// TODO
 builder.Services.AddDbContext<CarRentalContext>(opt =>
     opt.UseInMemoryDatabase("CarRental"));
 

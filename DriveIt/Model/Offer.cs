@@ -11,6 +11,8 @@ namespace DriveIt.Model
         public string IntegratorName { get; set; }
         public string IntegratorUrl { get; set; }
 
+        public Offer() { }
+
         public Offer(Guid id, decimal rentPrice, decimal insurancePrice, int offerTimeLimit, string companyName, string companyUrl)
         {
             Id = id;
