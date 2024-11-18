@@ -10,6 +10,7 @@ namespace DriveItAPI.Data
         }
 
         public DbSet<Car> Cars { get; set; }
+        public DbSet<RentOffer> RentOffers { get; set; }
         //public DbSet<Model.Rent> Rents { get; set; }
     }
 }
