@@ -22,7 +22,8 @@ namespace DriveItAPI.Controllers
         public async Task<ActionResult<List<CarDto>>> GetCars()
         {
             return await _db.Cars.
-                Select(c => new CarDto(c.Brand, c.Model, c.Year, c.Id)).
+                Where(c => c.Available).
+                Select(c => new CarDto(c.Brand, c.Model, c.Year, c.Id, c.City)).
                 ToListAsync();
         }
     }
