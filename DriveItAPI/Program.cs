@@ -1,5 +1,7 @@
 using DriveItAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using System.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,12 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Do zmiany
-builder.Services.AddDbContext<CarRentalContext>(opt =>
-    opt.UseInMemoryDatabase("CarRental"));
+/*builder.Services.AddDbContext<CarRentalContext>(opt =>
+    opt.UseInMemoryDatabase("CarRental"));*/
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<CarRentalContext>(options =>
+	options.UseSqlServer(connectionString));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -40,5 +46,7 @@ using (var scope = scopeFactory.CreateScope())
         SeedData.Initialize(db);
     }
 }
+
+
 
 app.Run();
