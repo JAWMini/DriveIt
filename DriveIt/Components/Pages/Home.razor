@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject CarService CarService
+@inject OfferService OfferService
 
 <PageTitle>Home</PageTitle>
 
@@ -146,7 +147,7 @@
     {
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
         // OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
-        Offers = await CarService.GetOffersAsync(offerRequest);
+        Offers = await OfferService.GetOffersAsync(offerRequest);
         await OffersModal.ShowAsync();
     }
 

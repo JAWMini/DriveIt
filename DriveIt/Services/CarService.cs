@@ -36,25 +36,25 @@ namespace DriveIt.Services
             }
         }
 
-        public async Task<List<Offer>> GetOffersAsync(OfferRequest offerRequest)
-        {
-            string url = "offers";
-            OfferRequestDto offerRequestDto = new(offerRequest.CarId, offerRequest.DrivingLicenseLength, offerRequest.UserAge);
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequestDto);
+        //public async Task<List<Offer>> GetOffersAsync(OfferRequest offerRequest)
+        //{
+        //    string url = "offers";
+        //    OfferRequestDto offerRequestDto = new(offerRequest.CarId, offerRequest.DrivingLicenseLength, offerRequest.UserAge);
+        //    HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, offerRequestDto);
 
-            response.EnsureSuccessStatusCode();
-            string responseContent = await response.Content.ReadAsStringAsync();
+        //    response.EnsureSuccessStatusCode();
+        //    string responseContent = await response.Content.ReadAsStringAsync();
 
-            OfferDto? offerDto = await response.Content.ReadFromJsonAsync<OfferDto>();
+        //    OfferDto? offerDto = await response.Content.ReadFromJsonAsync<OfferDto>();
 
-            if(offerDto is null)
-                return [];
+        //    if(offerDto is null)
+        //        return [];
 
-            Offer offer = new(offerDto.Id, offerDto.RentPrice, offerDto.InsurancePrice, offerDto.OfferTimeLimit, offerDto.IntegratorName, offerDto.IntegratorUrl);
-            //Offer offer = new(offerDto);
+        //    Offer offer = new(offerDto.Id, offerDto.RentPrice, offerDto.InsurancePrice, offerDto.OfferTimeLimit, offerDto.IntegratorName, offerDto.IntegratorUrl);
+        //    //Offer offer = new(offerDto);
 
-            return [offer];
-        }
+        //    return [offer];
+        //}
 
         public async Task SendRentRequestAsync(Offer offer)
         {
