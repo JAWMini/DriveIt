@@ -1,10 +1,12 @@
 ﻿@page "/"
 @using DriveIt.Model
 @using DriveIt.Services
+@using DriveIt.EmailSenders
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject CarService CarService
 @inject OfferService OfferService
+@inject IGeneralEmailSender EmailSender
 
 <PageTitle>Home</PageTitle>
 
@@ -145,8 +147,13 @@
     // TODO: Dodać dane użytkownika
     private async Task OnCarClick(GridRowEventArgs<Car> args)
     {
+        // Testowe wysłanie emaila
+        // TODO: Przenieść wysyłanie emaila do odpowiedniej funkcji
+        // TODO: Zmienić na adres użytkownika oraz zmienić tytuł i treść wiadomości
+        await EmailSender.SendEmailAsync("user@email.com", "Test", "Pierwsza wiadomość");
+
+
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
-        // OfferRequestDto offerRequest = new OfferRequestDto(args.Item.Id, 5, 25);
         Offers = await OfferService.GetOffersAsync(offerRequest);
         await OffersModal.ShowAsync();
     }

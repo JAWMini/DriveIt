@@ -1,6 +1,7 @@
 using DriveIt.Components;
 using DriveIt.Components.Account;
 using DriveIt.Data;
+using DriveIt.EmailSenders;
 using DriveIt.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +22,8 @@ builder.Services.AddBlazorBootstrap();
 // TODO
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7289") });
 builder.Services.AddScoped<CarService>();
+builder.Services.AddScoped<OfferService>();
+
 
 builder.Services.AddAuthentication(options =>
     {
@@ -44,6 +47,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IGeneralEmailSender>(sp =>
+    new SendGridEmailSender(Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY")));
 
 var app = builder.Build();
 

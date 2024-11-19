@@ -15,6 +15,7 @@ namespace DriveIt.EmailSenders
         public async Task SendEmailAsync(string email, string subject, string message)
         {
             var client = new SendGridClient(_sendGridApiKey);
+            // TODO: Ustawienie adresu nadawcy
             var from = new EmailAddress("no-reply@driveit.com", "DriveIt");
             var to = new EmailAddress(email);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
