@@ -9,7 +9,7 @@ namespace DriveIt.EmailSenders
 
         public SendGridEmailSender(string sendGridApiKey)
         {
-            _sendGridApiKey = sendGridApiKey ?? throw new ArgumentNullException(nameof(sendGridApiKey));
+            //_sendGridApiKey = sendGridApiKey ?? throw new ArgumentNullException(nameof(sendGridApiKey));
         }
 
         public async Task SendEmailAsync(string email, string subject, string message)
