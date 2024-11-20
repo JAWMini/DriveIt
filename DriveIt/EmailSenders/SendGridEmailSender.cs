@@ -16,7 +16,7 @@ namespace DriveIt.EmailSenders
         {
             var client = new SendGridClient(_sendGridApiKey);
             // TODO: Ustawienie adresu nadawcy
-            var from = new EmailAddress("no-reply@driveit.com", "DriveIt");
+            var from = new EmailAddress("adbksxybz@mozmail.com", "DriveIt");
             var to = new EmailAddress(email);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
 

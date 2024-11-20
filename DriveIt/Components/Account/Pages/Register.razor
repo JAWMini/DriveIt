@@ -123,6 +123,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(customer, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
+        ;
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
@@ -192,5 +193,12 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        // Constructor to set default values
+        public InputModel()
+        {
+            DateOfBirth = DateTime.Today; // Default to today's date
+            DriverLicenseYear = DateTime.Now.Year; // Default to current year
+        }
     }
 }
