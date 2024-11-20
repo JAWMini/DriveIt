@@ -24,7 +24,7 @@ namespace DriveItAPI.Controllers
             if (car is null)
                 return null;
 
-            RentOffer rentOffer = new(car);
+            RentalOffer rentOffer = new(car);
             _db.RentOffers.Add(rentOffer);
 
             OfferDto rentOfferDto = new(rentOffer.Id, rentOffer.RentPricePerDay, rentOffer.InsurancePriccePerDay, rentOffer.OfferTimeLimit);

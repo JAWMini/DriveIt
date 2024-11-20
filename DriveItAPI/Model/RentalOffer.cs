@@ -1,6 +1,6 @@
 ﻿namespace DriveItAPI.Model
 {
-    public record class RentOffer
+    public record class RentalOffer
     {
         public Guid Id { get; set; } = new();
         public Car Car { get; set; }
@@ -9,9 +9,9 @@
         public decimal InsurancePriccePerDay { get; init; }
         public int OfferTimeLimit { get; init; } = 10;
 
-        public RentOffer() { }
+        public RentalOffer() { }
 
-        public RentOffer(Car car)
+        public RentalOffer(Car car)
         {
             Car = car;
             RentPricePerDay = car.RentPricePerDay;
