@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using DriveIt.Components.Account
 @using DriveIt.Model
 @using DriveIt.Services
 @using DriveIt.EmailSenders
@@ -7,6 +8,8 @@
 @inject CarService CarService
 @inject OfferService OfferService
 @inject IGeneralEmailSender EmailSender
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
 
 <PageTitle>Home</PageTitle>
 
@@ -14,64 +17,102 @@
 
 <div class="row">
     <div class="col-md-9">
-        <Grid TItem="Car"
-              Class="table table-striped"
-            AllowPaging="true"
-              PageSizeSelectorVisible="true"
-              PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-            AllowSorting="true"
-            Data="FilteredCars"
-            OnRowClick="OnCarClick"
-            AllowRowClick="true"
-            Responsive="true">
+        @if(FilteredCars.Any())
+        {
+            <Grid TItem="Car"
+                  Class="table table-striped"
+                AllowPaging="true"
+                  PageSizeSelectorVisible="true"
+                  PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+                AllowSorting="true"
+                Data="FilteredCars"
+                OnRowClick="OnCarClick"
+                AllowRowClick="true"
+                Responsive="true">
 
-            <GridColumns>
-                <GridColumn TItem="Car" HeaderText="Marka" SortKeySelector="item => item.Brand">@context.Brand</GridColumn>
-                <GridColumn TItem="Car" HeaderText="Model" SortKeySelector="item => item.Model">@context.Model</GridColumn>
-                <GridColumn TItem="Car" HeaderText="Rok produkcji" SortKeySelector="item => item.Year">@context.Year</GridColumn>
-                <GridColumn TItem="Car" HeaderText="Miasto" SortKeySelector="item => item.City">@context.City</GridColumn>
-            </GridColumns>
+                <GridColumns>
+                    <GridColumn TItem="Car" HeaderText="Marka" SortKeySelector="item => item.Brand">@context.Brand</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Model" SortKeySelector="item => item.Model">@context.Model</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Rok produkcji" SortKeySelector="item => item.Year">@context.Year</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Miasto" SortKeySelector="item => item.City">@context.City</GridColumn>
+                </GridColumns>
             </Grid>
+        }
+        else
+        {
+            <div class="alert alert-warning w-50 mx-auto text-center" role="alert">
+                <strong>Brak dostępnych samochodów.</strong> Spróbuj zmienić filtry.
+            </div>
+        }
     </div>
     <div class="col-md-3">
-        <button class="btn btn-secondary mb-3" @onclick="ClearFilters">Wyczyść filtry</button>
-        <Accordion>
-            <AccordionItem>
-                <TitleTemplate>
-                <h4 class="card-title">Filtrowanie</h4>
-                </TitleTemplate>
-                <Content>
-                <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
-                @foreach (var brand in Cars.Select(c => c.Brand).Distinct())
-                {
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
-                        <label class="form-check-label" for="@brand">@brand</label>
-                    </div>
-                    var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
-                    <div style="margin-left: 20px;">
-                        @foreach (var model in models)
+        @if(Cars.Count > 0)
+        {
+            
+            <button class="btn btn-secondary mb-3" @onclick="ClearFilters">Wyczyść filtry</button>
+            <Accordion>
+                <AccordionItem>
+                    <TitleTemplate>
+                    <h4 class="card-title">Filtrowanie</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
+                        @foreach (var brand in DistinctBrands)
                         {
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand && car.model == model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
-                                <label class="form-check-label" for="@model">@model</label>
+                                <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
+                                <label class="form-check-label" for="@brand">@brand</label>
+                            </div>
+                            var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
+                            <div style="margin-left: 20px;">
+                                @foreach (var model in models)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand && car.model == model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
+                                        <label class="form-check-label" for="@model">@model</label>
+                                    </div>
+                                }
                             </div>
                         }
-                    </div>
-                }
-
-                <h5 class="mt-4">Rok produkcji</h5>
-                <div class="mb-3">
-                    <label for="minYear" class="form-label">Minimalny rok:</label>
-                    <input type="number" class="form-control" id="minYear" @bind="MinYear" />
-                </div>
-                <div class="mb-3">
-                    <label for="maxYear" class="form-label">Maksymalny rok:</label>
-                    <input type="number" class="form-control" id="maxYear" @bind="MaxYear" />
-                </div>
                     </Content>
                 </AccordionItem>
-        </Accordion>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Rok produkcji</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minYear" class="form-label">Minimalny rok:</label>
+                            <input type="number" class="form-control" id="minYear" @bind="MinYear" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxYear" class="form-label">Maksymalny rok:</label>
+                            <input type="number" class="form-control" id="maxYear" @bind="MaxYear" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Miasto</h4>
+                    </TitleTemplate>
+                    <Content>
+                        @foreach (var city in DistinctCities)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedCities.Contains(city)" id="@city" @onchange="(e) => ToggleCitySelection(city, e)" />
+                                <label class="form-check-label" for="@city">@city</label>
+                            </div>
+                        }
+                    </Content>
+                </AccordionItem>
+            </Accordion>
+        }
+        else
+        {
+            <div class="alert alert-info w-50 mx-auto" role="alert">
+                <strong>Brak dostępnych filtrów.</strong>
+            </div>
+        }
     </div>
 </div>
 
@@ -111,11 +152,6 @@
 
 @code
 {
-    // Dodać zapytanie do kontrolera. To tylko szablon
-    // private async Task<GridDataProviderResult<Car>> CarDataProvider(GridDataProviderRequest<Car> request)
-    // {
-    //     return await Task.FromResult(request.ApplyTo(FilteredCars));
-    // }
     List<Car> Cars = [];
     List<Offer> Offers = [];
     Modal OffersModal = default!;
@@ -124,11 +160,17 @@
     int? MaxYear { get; set; } = null;
 
     HashSet<(string brand, string model)> SelectedBrandModels = [];
+    HashSet<string> SelectedCities = [];
+
+
 
     IEnumerable<Car> FilteredCars => (from car in Cars
-                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && (MinYear is null || car.Year >= MinYear) && (MaxYear is null || car.Year <= MaxYear)
+                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && 
+                                      (MinYear is null || car.Year >= MinYear) && (MaxYear is null || car.Year <= MaxYear) && (SelectedCities.Count == 0 || SelectedCities.Contains(car.City))
                                       select car);
 
+    IEnumerable<string> DistinctCities => (from car in Cars select car.City).Distinct();
+    IEnumerable<string> DistinctBrands => (from car in Cars select car.Brand).Distinct();
 
 
     protected override async Task OnInitializedAsync()
@@ -165,9 +207,7 @@
 
     public async Task SendOfferConfirmation(Offer offer)
     {
-        // await CarService.SendRentRequestAsync(offer);
         await OfferService.SendRentalOfferEmailAsync("user@email.com", offer);
-
     }
 
 
@@ -198,61 +238,22 @@
         }
     }
 
+    private void ToggleCitySelection(string city, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedCities.Add(city);
+        }
+        else
+        {
+            SelectedCities.Remove(city);
+        }
+    }
+
     private void ClearFilters(MouseEventArgs e)
     {
         SelectedBrandModels.Clear();
         MinYear = null;
         MaxYear = null;
-    }
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7289/cars");
-
-    //     HttpClient client = ClientFactory.CreateClient();
-
-    //     HttpResponseMessage response = await client.SendAsync(request);
-
-    //     if(response.IsSuccessStatusCode)
-    //     {
-    //         using var responseStream = await response.Content.ReadAsStreamAsync();
-    //         Cars = await JsonSerializer.DeserializeAsync<List<Car>>(responseStream);
-    //     }
-
-    // }
-
-    // protected override void OnInitialized()
-    // {
-    //     base.OnInitialized();
-    //     Cars = new List<Car>
-    //     {
-    //         new Car("Toyota", "Corolla", 2010, new Guid()),
-    //         new Car("Toyota", "Camry", 2012, new Guid()),
-    //         new Car("Toyota", "RAV4", 2020, new Guid()),
-    //         new Car("Honda", "Civic", 2015, new Guid()),
-    //         new Car("Honda", "Accord", 2018, new Guid()),
-    //         new Car("Honda", "CR-V", 2021, new Guid()),
-    //         new Car("Ford", "Focus", 2018, new Guid()),
-    //         new Car("Ford", "Fiesta", 2016, new Guid()),
-    //         new Car("Ford", "Mustang", 2020, new Guid()),
-    //         new Car("BMW", "X5", 2020, new Guid()),
-    //         new Car("BMW", "X3", 2017, new Guid()),
-    //         new Car("BMW", "3 Series", 2015, new Guid()),
-    //         new Car("Audi", "A4", 2022, new Guid()),
-    //         new Car("Audi", "Q5", 2019, new Guid()),
-    //         new Car("Audi", "A6", 2016, new Guid()),
-    //         new Car("Mercedes", "C-Class", 2019, new Guid()),
-    //         new Car("Mercedes", "E-Class", 2021, new Guid()),
-    //         new Car("Mercedes", "GLC", 2020, new Guid()),
-    //         new Car("Volkswagen", "Golf", 2018, new Guid()),
-    //         new Car("Volkswagen", "Passat", 2015, new Guid()),
-    //         new Car("Volkswagen", "Tiguan", 2017, new Guid()),
-    //         new Car("Toyota", "Yaris", 2021, new Guid()),
-    //         new Car("Toyota", "Highlander", 2019, new Guid()),
-    //         new Car("Ford", "Explorer", 2022, new Guid()),
-    //         new Car("Honda", "Pilot", 2023, new Guid()),
-    //         new Car("Audi", "A3", 2020, new Guid())
-    //     };
-    // }
-
+    }    
 }
