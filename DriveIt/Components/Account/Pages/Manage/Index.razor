@@ -68,23 +68,19 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    private InputModel? Input { get; set; } = null;
+    private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        if (Input is not null)
-            return;
-
-        Input = new();
         var userId = UserAccessor.GetUserId(HttpContext);
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
         if (user is Customer customer) 
         {
-            Input.FirstName = customer.FirstName;
-            Input.LastName = customer.LastName;
-            Input.DateOfBirth = customer.DateOfBirth;
-            Input.DriverLicenseYear = customer.DriverLicenseYear;
+            Input.FirstName ??= customer.FirstName;
+            Input.LastName ??= customer.LastName;
+            Input.DateOfBirth ??= customer.DateOfBirth;
+            Input.DriverLicenseYear ??= customer.DriverLicenseYear;
         }
 
         username = await UserManager.GetUserNameAsync(user);
@@ -112,17 +108,10 @@
 
 
         // Update custom fields
-        customer.FirstName = Input?.FirstName ?? customer.FirstName;
-        customer.LastName = Input?.LastName ?? customer.LastName;
-        customer.DateOfBirth = Input?.DateOfBirth ?? customer.DateOfBirth;
-        customer.DriverLicenseYear = Input?.DriverLicenseYear ?? customer.DriverLicenseYear;
-        var entry = dbContext.Entry(customer);
-        Console.WriteLine(entry.State); // Powinno być EntityState.Modified
-        var modifiedProperties = entry.Properties
-    .Where(p => p.IsModified)
-    .Select(p => p.Metadata.Name);
-        Console.WriteLine(string.Join(", ", modifiedProperties));
-        ;
+        customer.FirstName = Input.FirstName!;// ?? customer.FirstName;
+        customer.LastName = Input.LastName!;// ?? customer.LastName;
+        customer.DateOfBirth = Input.DateOfBirth ?? customer.DateOfBirth;
+        customer.DriverLicenseYear = Input.DriverLicenseYear ?? customer.DriverLicenseYear;
 
         // Update phone number via UserManager
         if (!string.IsNullOrWhiteSpace(Input.PhoneNumber))
@@ -134,25 +123,14 @@
                 return;
             }
         }
+        
 
+        // Save changes to custom fields
+        await dbContext.SaveChangesAsync();
 
-        dbContext.Entry(customer).State = EntityState.Modified;
-
-        entry = dbContext.Entry(customer);
-        Console.WriteLine(entry.State); // Powinno być EntityState.Modified
-
-        modifiedProperties = entry.Properties
-    .Where(p => p.IsModified)
-    .Select(p => p.Metadata.Name);
-        Console.WriteLine(string.Join(", ", modifiedProperties));
-        ;
-
-    // Save changes to custom fields
-    await dbContext.SaveChangesAsync();
-
-    await SignInManager.RefreshSignInAsync(customer);
-    RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
-}
+        await SignInManager.RefreshSignInAsync(customer);
+        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+    }
 
     private bool IsValidPhoneNumber(string phoneNumber)
     {

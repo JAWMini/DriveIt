@@ -25,7 +25,7 @@ namespace DriveIt.Services
         // Metoda pobierająca ofertę na podstawie ID
         public async Task<Offer?> GetLocalOfferByIdAsync(Guid offerId)
         {
-            return await _context.Offers.FindAsync(offerId);     
+            return await _context.Offers.FindAsync(offerId);
         }
         public async Task<List<Offer>> GetOffersAsync(OfferRequest offerRequest)
         {

@@ -21,7 +21,7 @@ builder.Services.AddBlazorBootstrap();
 
 // TODO
 var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI)});
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
 builder.Services.AddScoped<TokenService>();
