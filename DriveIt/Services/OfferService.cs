@@ -1,5 +1,6 @@
 ﻿using DriveIt.Data;
 using DriveIt.DTOs;
+using DriveIt.EmailSenders;
 using DriveIt.Model;
 using System.Text;
 using System.Text.Json;
@@ -10,11 +11,15 @@ namespace DriveIt.Services
     {
         private readonly CarRentalContext _context;
         private readonly HttpClient _httpClient;
+        private readonly TokenService _tokenService;
+        private readonly IGeneralEmailSender _emailSender;
 
-        public OfferService(CarRentalContext context, HttpClient httpClient)
+        public OfferService(CarRentalContext context, HttpClient httpClient, TokenService tokenService, IGeneralEmailSender emailSender)
         {
             _context = context;
             _httpClient = httpClient;
+            _tokenService = tokenService;
+            _emailSender = emailSender;
         }
 
         // Metoda pobierająca ofertę na podstawie ID
@@ -42,6 +47,17 @@ namespace DriveIt.Services
             return [offer];
         }
 
+        public async Task SendRentalOfferEmailAsync(string userEmail, Offer offer)
+        {
+            var token = _tokenService.GenerateToken(offer.Id.ToString(), offer.OfferTimeLimit);
+            var callbackUrl = $"https://localhost:7100/potwierdzenie-wypożyczenia?token={Uri.EscapeDataString(token)}";
+
+            var emailBody = $"Kliknij w ten link, aby zaakceptować ofertę: <a href=\"{callbackUrl}\">Akceptuj ofertę</a>. Link jest ważny przez {offer.OfferTimeLimit} minut.";
+
+            await _emailSender.SendEmailAsync(userEmail, "Oferta wypożyczenia samochodu", emailBody);
+        }
+
+
         // TODO
         //// Metoda wysyłająca zapytanie HTTP na podstawie oferty
         public async Task<bool> ConfirmOfferAsync(Offer offer)
@@ -65,6 +81,7 @@ namespace DriveIt.Services
 
             return response.IsSuccessStatusCode;
         }
+
     }
 
 }

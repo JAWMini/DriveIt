@@ -23,7 +23,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7289") });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
-
+builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddAuthentication(options =>
     {

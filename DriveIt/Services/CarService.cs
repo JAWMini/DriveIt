@@ -56,9 +56,6 @@ namespace DriveIt.Services
         //    return [offer];
         //}
 
-        public async Task SendRentRequestAsync(Offer offer)
-        {
 
-        }
     }
 }

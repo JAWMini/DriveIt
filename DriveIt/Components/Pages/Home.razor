@@ -94,7 +94,7 @@
                         <td>@offer.RentPrice</td>
                         <td>@offer.InsurancePrice</td>
                         <td>
-                            <button class="btn btn-primary" @onclick="() => SendRentRequest(offer)">Rent me</button>
+                            <button class="btn btn-primary" @onclick="() => SendOfferConfirmation(offer)">Rent me</button>
                         </td>
                     </tr>
                 }
@@ -150,7 +150,7 @@
         // Testowe wysłanie emaila
         // TODO: Przenieść wysyłanie emaila do odpowiedniej funkcji
         // TODO: Zmienić na adres użytkownika oraz zmienić tytuł i treść wiadomości
-        await EmailSender.SendEmailAsync("user@email.com", "Test", "Pierwsza wiadomość");
+        // await EmailSender.SendEmailAsync("user@email.com", "Test", "Pierwsza wiadomość");
 
 
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
@@ -163,9 +163,11 @@
         await OffersModal.HideAsync();
     }
 
-    public async Task SendRentRequest(Offer offer)
+    public async Task SendOfferConfirmation(Offer offer)
     {
-        await CarService.SendRentRequestAsync(offer);
+        // await CarService.SendRentRequestAsync(offer);
+        await OfferService.SendRentalOfferEmailAsync("user@email.com", offer);
+
     }
 
 
