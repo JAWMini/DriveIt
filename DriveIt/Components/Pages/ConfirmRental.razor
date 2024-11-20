@@ -2,11 +2,14 @@
 @rendermode InteractiveServer
 @using DriveIt.Model
 @using DriveIt.Services
+@using DriveIt.Components.Account
 
+@inject IdentityUserAccessor UserAccessor
 @inject HttpClient Http
 @inject OfferService OfferService
 @inject TokenService TokenService
 @inject NavigationManager Navigation
+@inject RentalService RentalService
 
 
 
@@ -66,6 +69,10 @@ else
 }
 
 @code {
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     [Parameter]
     public string? Token { get; set; }
 
@@ -106,8 +113,11 @@ else
 
     private async Task ConfirmReservation()
     {
-        await modal.ShowAsync();
-        await OfferService.ConfirmOfferAsync(offer!);
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        await modal.ShowAsync(); // pokazanie modala
+        await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
+        var Rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(user.Id)); // potwierdzenie oferty w API
+        await RentalService.AddRentalAsync(Rental); // dodanie wypożyczenia do bazy danych frontendu
         Navigation.NavigateTo("/moje-wypozyczenia");
     }
 }

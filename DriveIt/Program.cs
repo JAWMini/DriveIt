@@ -25,6 +25,9 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI)});
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<RentalService>();
+
+
 
 builder.Services.AddAuthentication(options =>
     {

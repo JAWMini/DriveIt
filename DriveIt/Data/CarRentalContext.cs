@@ -10,5 +10,7 @@ namespace DriveIt.Data
         }
 
         public DbSet<Offer> Offers { get; set; }
+        public DbSet<Rental> Rentals { get; set; }
+
     }
 }
