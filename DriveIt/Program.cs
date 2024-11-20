@@ -20,7 +20,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddBlazorBootstrap();
 
 // TODO
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7289") });
+var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI)});
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
 builder.Services.AddScoped<TokenService>();
@@ -36,7 +37,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddDbContext<CarRentalContext>(opt =>
     opt.UseInMemoryDatabase("CarRental"));
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING")) ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
