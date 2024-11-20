@@ -28,6 +28,29 @@
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" placeholder="First Name" />
+                <label for="first-name">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" placeholder="Last Name" />
+                <label for="last-name">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputDate @bind-Value="Input.DateOfBirth" class="form-control" placeholder="Date of Birth" />
+                <label for="date-of-birth">Date of Birth</label>
+                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputNumber @bind-Value="Input.DriverLicenseYear" class="form-control" placeholder="Driver License Year" />
+                <label for="driver-license-year">Driver License Year</label>
+                <ValidationMessage For="() => Input.DriverLicenseYear" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
@@ -67,12 +90,21 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
-        var user = CreateUser();
+        var customer = CreateCustomer();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        // Ustaw dane klienta
+        customer.FirstName = Input.FirstName;
+        customer.LastName = Input.LastName;
+        customer.DateOfBirth = Input.DateOfBirth;
+        customer.DriverLicenseYear = Input.DriverLicenseYear;
+
+        // Ustaw nazwę użytkownika i e-mail
+        await UserStore.SetUserNameAsync(customer, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-        var result = await UserManager.CreateAsync(user, Input.Password);
+        await emailStore.SetEmailAsync(customer, Input.Email, CancellationToken.None);
+
+        // Utwórz klienta w bazie danych
+        var result = await UserManager.CreateAsync(customer, Input.Password);
 
         if (!result.Succeeded)
         {
@@ -80,38 +112,39 @@
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
+        Logger.LogInformation("Customer created a new account with password.");
 
-        var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        var userId = await UserManager.GetUserIdAsync(customer);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(customer);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
 
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendConfirmationLinkAsync(customer, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+                new() { ["email"] = Input.Email });
+            return;
         }
 
-        await SignInManager.SignInAsync(user, isPersistent: false);
+        await SignInManager.SignInAsync(customer, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
-    private ApplicationUser CreateUser()
+    private Customer CreateCustomer()
     {
         try
         {
-            return Activator.CreateInstance<ApplicationUser>();
+            return Activator.CreateInstance<Customer>();
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(Customer)}'. " +
+                $"Ensure that '{nameof(Customer)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 
@@ -126,6 +159,24 @@
 
     private sealed class InputModel
     {
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Date of Birth")]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        [Range(1900, 2100, ErrorMessage = "The year must be between 1900 and 2100.")]
+        [Display(Name = "Driver License Year")]
+        public int DriverLicenseYear { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
