@@ -22,10 +22,10 @@ namespace DriveIt.EmailSenders
 
             var response = await client.SendEmailAsync(msg);
 
-            //if (!response.IsSuccessStatusCode)
-            //{
-            //    throw new InvalidOperationException($"SendGrid error: {response.StatusCode}");
-            //}
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException($"SendGrid error: {response.StatusCode}");
+            }
         }
     }
 }
