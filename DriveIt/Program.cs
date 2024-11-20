@@ -19,7 +19,13 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddBlazorBootstrap();
 
 // TODO
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7289") });
+foreach (var entry in Environment.GetEnvironmentVariables().Keys)
+{
+	Console.WriteLine($"{entry}: {Environment.GetEnvironmentVariable(entry.ToString())}");
+}
+
+var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) }) ;
 builder.Services.AddScoped<CarService>();
 
 builder.Services.AddAuthentication(options =>
