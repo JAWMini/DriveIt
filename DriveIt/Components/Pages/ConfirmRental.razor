@@ -87,7 +87,7 @@ else
         {
             // Token jest poprawny, możesz zaakceptować ofertę
             Message = "Oferta zaakceptowana!";
-            offer = await OfferService.GetOfferByIdAsync(offerId);
+            offer = await OfferService.GetLocalOfferByIdAsync(offerId);
 
             // Tu można dodać logikę do zaakceptowania oferty w bazie
             // AcceptOffer(offerId);
