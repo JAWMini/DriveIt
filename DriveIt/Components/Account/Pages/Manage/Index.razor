@@ -68,10 +68,14 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
+    private InputModel? Input { get; set; } = null;
 
     protected override async Task OnInitializedAsync()
     {
+        if (Input is not null)
+            return;
+
+        Input = new();
         var userId = UserAccessor.GetUserId(HttpContext);
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
 
@@ -108,10 +112,10 @@
 
 
         // Update custom fields
-        customer.FirstName = Input.FirstName!;
-        customer.LastName = Input.LastName!;
-        customer.DateOfBirth = Input.DateOfBirth ?? customer.DateOfBirth;
-        customer.DriverLicenseYear = Input.DriverLicenseYear ?? customer.DriverLicenseYear;
+        customer.FirstName = Input?.FirstName ?? customer.FirstName;
+        customer.LastName = Input?.LastName ?? customer.LastName;
+        customer.DateOfBirth = Input?.DateOfBirth ?? customer.DateOfBirth;
+        customer.DriverLicenseYear = Input?.DriverLicenseYear ?? customer.DriverLicenseYear;
         var entry = dbContext.Entry(customer);
         Console.WriteLine(entry.State); // Powinno być EntityState.Modified
         var modifiedProperties = entry.Properties
