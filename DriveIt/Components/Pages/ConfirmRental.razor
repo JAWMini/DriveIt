@@ -1,9 +1,10 @@
-﻿@page "/potwierdzenie-wypożyczenia/{ofertaId:guid}"
+﻿@page "/potwierdzenie-wypożyczenia"
 @using DriveIt.Model
 @using DriveIt.Services
 
 @inject HttpClient Http
 @inject OfferService OfferService
+@inject TokenService TokenService
 @inject NavigationManager Navigation
 
 <h3>Potwierdzenie wypożyczenia</h3>
@@ -23,13 +24,36 @@ else
 
 @code {
     [Parameter]
-    public Guid ofertaId { get; set; }
+    public string? Token { get; set; }
+
+    public string Message { get; set; }
 
     private Offer? offer;
 
     protected override async Task OnInitializedAsync()
     {
-        offer = await OfferService.GetOfferByIdAsync(ofertaId);
+        if (string.IsNullOrEmpty(Token))
+        {
+            Message = "Brak tokenu.";
+            return;
+        }
+
+        if (TokenService.ValidateToken(Token, out var offerId))
+        {
+            // Token jest poprawny, możesz zaakceptować ofertę
+            Message = "Oferta zaakceptowana!";
+            offer = await OfferService.GetOfferByIdAsync(offerId);
+
+            // Tu można dodać logikę do zaakceptowania oferty w bazie
+            // AcceptOffer(offerId);
+        }
+        else
+        {
+            // Token wygasł lub jest nieprawidłowy
+            Message = "Link wygasł lub jest nieprawidłowy.";
+        }
+
+        // offer = await OfferService.GetOfferByIdAsync(ofertaId);
 
         if(offer is null)
             Navigation.NavigateTo("/404");

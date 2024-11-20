@@ -11,21 +11,21 @@ namespace DriveIt.Services
             _protector = dataProtectionProvider.CreateProtector("CarRentalOfferProtector");
         }
 
-        public string GenerateToken(string offerId, int offerExpirationInMinutes)
+        public string GenerateToken(Guid offerId, int offerExpirationInMinutes)
         {
             var data = $"{offerId}|{DateTime.UtcNow}|{offerExpirationInMinutes}";
             var token = _protector.Protect(data);
             return token;
         }
 
-        public bool ValidateToken(string token, out string offerId)
+        public bool ValidateToken(string token, out Guid offerId)
         {
-            offerId = string.Empty;
+            offerId = Guid.Empty;
             try
             {
                 var data = _protector.Unprotect(token);
                 var parts = data.Split('|');
-                offerId = parts[0];
+                offerId = Guid.Parse(parts[0]);
                 var timeStamp = DateTime.Parse(parts[1]);
                 var offerExpirationInMinutes = int.Parse(parts[2]);
 

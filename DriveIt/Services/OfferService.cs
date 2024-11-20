@@ -49,7 +49,7 @@ namespace DriveIt.Services
 
         public async Task SendRentalOfferEmailAsync(string userEmail, Offer offer)
         {
-            var token = _tokenService.GenerateToken(offer.Id.ToString(), offer.OfferTimeLimit);
+            var token = _tokenService.GenerateToken(offer.Id, offer.OfferTimeLimit);
             var callbackUrl = $"https://localhost:7100/potwierdzenie-wypożyczenia?token={Uri.EscapeDataString(token)}";
 
             var emailBody = $"Kliknij w ten link, aby zaakceptować ofertę: <a href=\"{callbackUrl}\">Akceptuj ofertę</a>. Link jest ważny przez {offer.OfferTimeLimit} minut.";
