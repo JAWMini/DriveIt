@@ -1,0 +1,163 @@
+﻿@page "/Account/Manage"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using DriveIt.Data
+@using Microsoft.EntityFrameworkCore;
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext dbContext
+
+
+<PageTitle>Profile</PageTitle>
+
+<h3>Profile</h3>
+<StatusMessage />
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
+                <label for="username" class="form-label">Username</label>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
+                <label for="phone-number" class="form-label">Phone number</label>
+                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" placeholder="First Name" />
+                <label for="first-name" class="form-label">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" placeholder="Last Name" />
+                <label for="last-name" class="form-label">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputDate @bind-Value="Input.DateOfBirth" class="form-control" placeholder="Date of Birth" />
+                <label for="date-of-birth" class="form-label">Date of Birth</label>
+                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputNumber @bind-Value="Input.DriverLicenseYear" class="form-control" placeholder="Driver License Year" />
+                <label for="driver-license-year" class="form-label">Driver License Year</label>
+                <ValidationMessage For="() => Input.DriverLicenseYear" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser user = default!;
+    private string? username;
+    private string? phoneNumber;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserAccessor.GetUserId(HttpContext);
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        if (user is Customer customer) 
+        {
+            Input.FirstName ??= customer.FirstName;
+            Input.LastName ??= customer.LastName;
+            Input.DateOfBirth ??= customer.DateOfBirth;
+            Input.DriverLicenseYear ??= customer.DriverLicenseYear;
+        }
+
+        username = await UserManager.GetUserNameAsync(user);
+        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+
+        Input.PhoneNumber ??= phoneNumber;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        var userId = UserAccessor.GetUserId(HttpContext);
+        if (string.IsNullOrEmpty(userId))
+        {
+            RedirectManager.RedirectToCurrentPageWithStatus("Error: User not authenticated.", HttpContext);
+            return;
+        }
+
+        // Retrieve the customer using dbContext
+        var customer = await dbContext.Users.FindAsync(userId) as Customer;
+        if(customer is null)
+        {
+            RedirectManager.RedirectToCurrentPageWithStatus("Error: User not found.", HttpContext);
+            return;
+        }
+
+
+        // Update custom fields
+        customer.FirstName = Input.FirstName!;// ?? customer.FirstName;
+        customer.LastName = Input.LastName!;// ?? customer.LastName;
+        customer.DateOfBirth = Input.DateOfBirth ?? customer.DateOfBirth;
+        customer.DriverLicenseYear = Input.DriverLicenseYear ?? customer.DriverLicenseYear;
+
+        // Update phone number via UserManager
+        if (!string.IsNullOrWhiteSpace(Input.PhoneNumber))
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(customer, Input.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to update phone number.", HttpContext);
+                return;
+            }
+        }
+        
+
+        // Save changes to custom fields
+        await dbContext.SaveChangesAsync();
+
+        await SignInManager.RefreshSignInAsync(customer);
+        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+    }
+
+    private bool IsValidPhoneNumber(string phoneNumber)
+    {
+        // Przykładowe wyrażenie regularne dla numerów telefonów
+        var phoneRegex = @"^\+?[1-9]\d{1,14}$"; // E.164 format
+        return System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, phoneRegex);
+    }
+
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "First Name is required.")]
+        [Display(Name = "First Name")]
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Last Name is required.")]
+        [Display(Name = "Last Name")]
+        public string? LastName { get; set; }
+
+        [Display(Name = "Date of Birth")]
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        [Display(Name = "Driver License Year")]
+        public int? DriverLicenseYear { get; set; }
+
+        [Display(Name = "Phone number")]
+        public string? PhoneNumber { get; set; }
+    }
+}

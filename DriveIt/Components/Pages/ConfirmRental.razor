@@ -1,0 +1,125 @@
+﻿@page "/potwierdzenie-wypożyczenia"
+@rendermode InteractiveServer
+@using DriveIt.Model
+@using DriveIt.Services
+@using DriveIt.Components.Account
+
+@inject IdentityUserAccessor UserAccessor
+@inject HttpClient Http
+@inject OfferService OfferService
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject RentalService RentalService
+
+
+
+
+@if(offer is not null)
+{
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-4">Potwierdź rezerwację</h3>
+                        <p class="text-muted mb-4">Sprawdź szczegóły przed potwierdzeniem</p>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Oferta od:</span>
+                                <strong>ABC Rental</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Cena wypożyczenia/dzień:</span>
+                                <span>20 zł</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Cena ubezpieczenia/dzień:</span>
+                                <span>100 zł</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-outline-secondary flex-grow-1">Anuluj</button>
+                            <button class="btn btn-primary flex-grow-1" @onclick="ConfirmReservation">Potwierdź</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <Modal @ref="modal" Title="Potwierdzenie">
+        <BodyTemplate>
+            <div class="card">
+                <div class="card-body">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 48px;"></i>
+                    <h3 class="modal-title text-center">Udało się potwierdzić rezerwację!</h3>
+                </div>
+            </div>
+        </BodyTemplate>
+    </Modal>
+}
+else if (Token is null)
+{
+    <h1 class="text-center">Oferta nieprawidłowa</h1>
+}
+else
+{
+    <h1 class="text-center">Ładowanie oferty...</h1>    
+}
+
+@code {
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [Parameter]
+    public string? Token { get; set; }
+
+    public string Message { get; set; }
+
+    private Offer? offer;
+
+    private Modal modal = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Token))
+        {
+            Message = "Brak tokenu.";
+            return;
+        }
+
+        if (TokenService.ValidateToken(Token, out var offerId))
+        {
+            // Token jest poprawny, możesz zaakceptować ofertę
+            Message = "Oferta zaakceptowana!";
+            offer = await OfferService.GetLocalOfferByIdAsync(offerId);
+
+            // Tu można dodać logikę do zaakceptowania oferty w bazie
+            // AcceptOffer(offerId);
+        }
+        else
+        {
+            // Token wygasł lub jest nieprawidłowy
+            Message = "Link wygasł lub jest nieprawidłowy.";
+        }
+
+        // offer = await OfferService.GetOfferByIdAsync(ofertaId);
+
+        if(offer is null)
+            Navigation.NavigateTo("/404");
+    }
+
+    private async Task ConfirmReservation()
+    {
+        modal.ShowAsync();
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+   
+        await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
+        var Rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(user.Id)); // potwierdzenie oferty w API
+        await RentalService.AddRentalAsync(Rental); // dodanie wypożyczenia do bazy danych frontendu
+        Navigation.NavigateTo("/moje-wypozyczenia");
+    }
+}

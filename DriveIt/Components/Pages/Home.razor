@@ -1,7 +1,259 @@
 ﻿@page "/"
+@using DriveIt.Components.Account
+@using DriveIt.Model
+@using DriveIt.Services
+@using DriveIt.EmailSenders
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject CarService CarService
+@inject OfferService OfferService
+@inject IGeneralEmailSender EmailSender
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Lista samochodów</h1>
 
-Welcome to your new app.
+<div class="row">
+    <div class="col-md-9">
+        @if(FilteredCars.Any())
+        {
+            <Grid TItem="Car"
+                  Class="table table-striped"
+                AllowPaging="true"
+                  PageSizeSelectorVisible="true"
+                  PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+                AllowSorting="true"
+                Data="FilteredCars"
+                OnRowClick="OnCarClick"
+                AllowRowClick="true"
+                Responsive="true">
+
+                <GridColumns>
+                    <GridColumn TItem="Car" HeaderText="Marka" SortKeySelector="item => item.Brand">@context.Brand</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Model" SortKeySelector="item => item.Model">@context.Model</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Rok produkcji" SortKeySelector="item => item.Year">@context.Year</GridColumn>
+                    <GridColumn TItem="Car" HeaderText="Miasto" SortKeySelector="item => item.City">@context.City</GridColumn>
+                </GridColumns>
+            </Grid>
+        }
+        else
+        {
+            <div class="alert alert-warning w-50 mx-auto text-center" role="alert">
+                <strong>Brak dostępnych samochodów.</strong> Spróbuj zmienić filtry.
+            </div>
+        }
+    </div>
+    <div class="col-md-3">
+        @if(Cars.Count > 0)
+        {
+            
+            <button class="btn btn-secondary mb-3" @onclick="ClearFilters">Wyczyść filtry</button>
+            <Accordion>
+                <AccordionItem>
+                    <TitleTemplate>
+                    <h4 class="card-title">Filtrowanie</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
+                        @foreach (var brand in DistinctBrands)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
+                                <label class="form-check-label" for="@brand">@brand</label>
+                            </div>
+                            var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
+                            <div style="margin-left: 20px;">
+                                @foreach (var model in models)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand && car.model == model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
+                                        <label class="form-check-label" for="@model">@model</label>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Rok produkcji</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minYear" class="form-label">Minimalny rok:</label>
+                            <input type="number" class="form-control" id="minYear" @bind="MinYear" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxYear" class="form-label">Maksymalny rok:</label>
+                            <input type="number" class="form-control" id="maxYear" @bind="MaxYear" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Miasto</h4>
+                    </TitleTemplate>
+                    <Content>
+                        @foreach (var city in DistinctCities)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedCities.Contains(city)" id="@city" @onchange="(e) => ToggleCitySelection(city, e)" />
+                                <label class="form-check-label" for="@city">@city</label>
+                            </div>
+                        }
+                    </Content>
+                </AccordionItem>
+            </Accordion>
+        }
+        else
+        {
+            <div class="alert alert-info w-50 mx-auto" role="alert">
+                <strong>Brak dostępnych filtrów.</strong>
+            </div>
+        }
+    </div>
+</div>
+
+<Modal @ref="OffersModal" title="Oferty" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Dostawca</th>
+                    <th>Cena wypożyczenia</th>
+                    <th>Cena ubezpieczenia</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Offer offer in Offers)
+                {
+                    <tr>
+                        <td>@offer.IntegratorName</td>
+                        <td>@offer.RentPrice</td>
+                        <td>@offer.InsurancePrice</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => SendOfferConfirmation(offer)">Rent me</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </BodyTemplate>
+    <FooterTemplate>
+            <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+    </FooterTemplate>
+</Modal>
+
+
+
+
+@code
+{
+    List<Car> Cars = [];
+    List<Offer> Offers = [];
+    Modal OffersModal = default!;
+
+    int? MinYear { get; set; } = null;
+    int? MaxYear { get; set; } = null;
+
+    HashSet<(string brand, string model)> SelectedBrandModels = [];
+    HashSet<string> SelectedCities = [];
+
+
+
+    IEnumerable<Car> FilteredCars => (from car in Cars
+                                      where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((car.Brand, car.Model))) && 
+                                      (MinYear is null || car.Year >= MinYear) && (MaxYear is null || car.Year <= MaxYear) && (SelectedCities.Count == 0 || SelectedCities.Contains(car.City))
+                                      select car);
+
+    IEnumerable<string> DistinctCities => (from car in Cars select car.City).Distinct();
+    IEnumerable<string> DistinctBrands => (from car in Cars select car.Brand).Distinct();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCarsAsync();
+    }
+
+    // Funkcja do załadowania samochodów z API
+    private async Task LoadCarsAsync()
+    {
+        Cars = await CarService.GetCarsAsync();
+        StateHasChanged();
+    }
+
+
+    // TODO: Dodać dane użytkownika
+    private async Task OnCarClick(GridRowEventArgs<Car> args)
+    {
+        // Testowe wysłanie emaila
+        // TODO: Przenieść wysyłanie emaila do odpowiedniej funkcji
+        // TODO: Zmienić na adres użytkownika oraz zmienić tytuł i treść wiadomości
+        // await EmailSender.SendEmailAsync("user@email.com", "Test", "Pierwsza wiadomość");
+
+
+        OfferRequest offerRequest = new(args.Item.Id, 5, 25);
+        Offers = await OfferService.GetOffersAsync(offerRequest);
+        await OffersModal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await OffersModal.HideAsync();
+    }
+
+    public async Task SendOfferConfirmation(Offer offer)
+    {
+        await OfferService.SendRentalOfferEmailAsync("user@email.com", offer);
+    }
+
+
+    // Funkcja do zaznaczania/odznaczania marek
+    private void ToggleBrandSelection(string brand, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs) isChecked)?.Value! == true)
+        {
+            var modelsToAdd = Cars.Where(car => car.Brand == brand).Select(car => (brand, car.Model));
+            SelectedBrandModels.UnionWith(modelsToAdd);
+        }
+        else
+        {
+            SelectedBrandModels.RemoveWhere(car => car.brand == brand);
+        }
+    }
+
+    // Funkcja do zaznaczania/odznaczania modeli
+    private void ToggleModelSelection(string brand, string model, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedBrandModels.Add((brand, model));
+        }
+        else
+        {
+            SelectedBrandModels.Remove((brand, model));
+        }
+    }
+
+    private void ToggleCitySelection(string city, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedCities.Add(city);
+        }
+        else
+        {
+            SelectedCities.Remove(city);
+        }
+    }
+
+    private void ClearFilters(MouseEventArgs e)
+    {
+        SelectedBrandModels.Clear();
+        MinYear = null;
+        MaxYear = null;
+    }    
+}
