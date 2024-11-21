@@ -25,7 +25,7 @@ namespace DriveIt.Services
         // Metoda pobierająca ofertę na podstawie ID
         public async Task<Offer?> GetLocalOfferByIdAsync(Guid offerId)
         {
-            return await _context.Offers.FindAsync(offerId);     
+            return await _context.Offers.FindAsync(offerId);
         }
         public async Task<List<Offer>> GetOffersAsync(OfferRequest offerRequest)
         {
@@ -56,31 +56,28 @@ namespace DriveIt.Services
 
             await _emailSender.SendEmailAsync(userEmail, "Oferta wypożyczenia samochodu", emailBody);
         }
+       
 
-
-        // TODO
-        //// Metoda wysyłająca zapytanie HTTP na podstawie oferty
-        public async Task<bool> ConfirmOfferAsync(Offer offer)
+        public async Task<bool> DeleteOfferAsync(Offer offer)
         {
-            var requestPayload = new
+            try
             {
-                OfferId = offer.Id,
-                RentPrice = offer.RentPrice,
-                InsurancePrice = offer.InsurancePrice,
-                OfferTimeLimit = offer.OfferTimeLimit,
-                IntegratorName = offer.IntegratorName,
-                IntegratorUrl = offer.IntegratorUrl
-            };
+                var existingOffer = await _context.Offers.FindAsync(offer.Id);
+                if (existingOffer is null)
+                    return false;
 
-            var content = new StringContent(
-                JsonSerializer.Serialize(requestPayload),
-                Encoding.UTF8,
-                "application/json");
+                _context.Offers.Remove(existingOffer);
+                await _context.SaveChangesAsync();
 
-            var response = await _httpClient.PostAsync(offer.IntegratorUrl, content);
-
-            return response.IsSuccessStatusCode;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting offer: {ex.Message}");
+                return false;
+            }
         }
+
 
     }
 

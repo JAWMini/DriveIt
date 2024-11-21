@@ -11,6 +11,6 @@
             CarId = carId;
             DrivingLicenseLength = drivingLicenseLength;
             UserAge = userAge;
-        }   
+        }
     }
 }

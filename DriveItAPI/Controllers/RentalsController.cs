@@ -1,7 +1,6 @@
 ﻿using DriveItAPI.Data;
 using DriveItAPI.DTOs;
 using DriveItAPI.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DriveItAPI.Controllers
@@ -28,7 +27,7 @@ namespace DriveItAPI.Controllers
             if (car is null)
                 return NotFound();
 
-            if(!car.Available)
+            if (!car.Available)
                 return BadRequest("Car is not available");
 
             var rental = new Rental(Guid.NewGuid(), car, rentRequestDto.UserId, DateTime.Now);
@@ -38,7 +37,7 @@ namespace DriveItAPI.Controllers
 
             var carDto = new CarDto(car);
 
-            return new RentalDto(offer.Id, carDto, rental.UserId, rental.StartDate);
+            return new RentalDto(rental.Id, carDto, rental.UserId, rental.StartDate);
 
             //return CreatedAtAction("PostRental", new { id = offer.Id }, new RentalDto(offer.Id, carDto, rental.UserId, rental.StartDate));
         }

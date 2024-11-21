@@ -1,6 +1,7 @@
 using DriveItAPI.Data;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,8 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // TODO
-builder.Services.AddDbContext<CarRentalContext>(opt =>
-    opt.UseInMemoryDatabase("CarRental"));
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? Environment.GetEnvironmentVariable("DefaultConnection");
+builder.Services.AddDbContext<CarRentalContext>(options =>
+    options.UseSqlServer(connectionString));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

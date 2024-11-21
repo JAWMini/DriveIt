@@ -1,6 +1,4 @@
-﻿using DriveIt.DTOs;
-
-namespace DriveIt.Model
+﻿namespace DriveIt.Model
 {
     public class Offer
     {

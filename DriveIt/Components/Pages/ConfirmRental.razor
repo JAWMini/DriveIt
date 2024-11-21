@@ -2,11 +2,14 @@
 @rendermode InteractiveServer
 @using DriveIt.Model
 @using DriveIt.Services
+@using DriveIt.Components.Account
 
+@inject IdentityUserAccessor UserAccessor
 @inject HttpClient Http
 @inject OfferService OfferService
 @inject TokenService TokenService
 @inject NavigationManager Navigation
+@inject RentalService RentalService
 
 
 
@@ -50,6 +53,7 @@
         <BodyTemplate>
             <div class="card">
                 <div class="card-body">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 48px;"></i>
                     <h3 class="modal-title text-center">Udało się potwierdzić rezerwację!</h3>
                 </div>
             </div>
@@ -62,10 +66,14 @@ else if (Token is null)
 }
 else
 {
-    <h1 class="text-center">Ładowanie oferty...</h1>
+    <h1 class="text-center">Ładowanie oferty...</h1>    
 }
 
 @code {
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     [Parameter]
     public string? Token { get; set; }
 
@@ -106,8 +114,12 @@ else
 
     private async Task ConfirmReservation()
     {
-        await modal.ShowAsync();
-        await OfferService.ConfirmOfferAsync(offer!);
+        modal.ShowAsync();
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+   
+        await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
+        var Rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(user.Id)); // potwierdzenie oferty w API
+        await RentalService.AddRentalAsync(Rental); // dodanie wypożyczenia do bazy danych frontendu
         Navigation.NavigateTo("/moje-wypozyczenia");
     }
 }

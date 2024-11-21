@@ -1,7 +1,5 @@
 ﻿using DriveItAPI.Data;
 using DriveItAPI.DTOs;
-using DriveItAPI.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
