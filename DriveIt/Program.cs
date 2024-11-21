@@ -38,13 +38,15 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 // TODO
-builder.Services.AddDbContext<CarRentalContext>(opt =>
-    opt.UseInMemoryDatabase("CarRental"));
 
-var connectionString = builder.Configuration.GetConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING")) ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+var connectionString = "Server=tcp:driveit.database.windows.net,1433;Initial Catalog=driveIT;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";" ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddDbContext<CarRentalContext>(opt =>
+    opt.UseSqlServer(connectionString));
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()

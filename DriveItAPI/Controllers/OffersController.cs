@@ -26,6 +26,7 @@ namespace DriveItAPI.Controllers
 
             RentalOffer rentOffer = new(car);
             _db.RentOffers.Add(rentOffer);
+            _db.SaveChanges();
 
             OfferDto rentOfferDto = new(rentOffer.Id, rentOffer.RentPricePerDay, rentOffer.InsurancePriccePerDay, rentOffer.OfferTimeLimit);
             return rentOfferDto;
