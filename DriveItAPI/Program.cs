@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // TODO
-var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? Environment.GetEnvironmentVariable("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString(Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING")) ?? Environment.GetEnvironmentVariable("DefaultConnection");
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer(connectionString));
 
