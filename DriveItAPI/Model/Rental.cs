@@ -1,12 +1,9 @@
 ﻿namespace DriveItAPI.Model
 {
     public record class Rental
-
     {
         public Guid Id { get; set; }
         public Car Car { get; set; }
-
-        
         public Guid UserId { get; set; }
         public DateTime StartDate { get; set; }
 
@@ -16,7 +13,6 @@
         {
             Id = id;
             Car = car;
-            
             UserId = userId;
             StartDate = startDate;
         }
