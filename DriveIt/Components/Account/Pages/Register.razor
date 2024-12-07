@@ -132,8 +132,7 @@
             success = false;
         }
 
-        await EmailSender.SendConfirmationLinkAsync(customer, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
+        
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(

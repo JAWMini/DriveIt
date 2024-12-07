@@ -197,6 +197,7 @@
 
         OfferRequest offerRequest = new(args.Item.Id, 5, 25);
         Offers = await OfferService.GetOffersAsync(offerRequest);
+        await OfferService.AddOffersAsync(Offers);
         await OffersModal.ShowAsync();
     }
 
@@ -207,7 +208,7 @@
 
     public async Task SendOfferConfirmation(Offer offer)
     {
-        await OfferService.SendRentalOfferEmailAsync("user@email.com", offer);
+        await OfferService.SendRentalOfferEmailAsync("wikkob11@gmail.com", offer);
     }
 
 
