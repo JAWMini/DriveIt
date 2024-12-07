@@ -8,6 +8,7 @@
 @inject CarService CarService
 @inject OfferService OfferService
 @inject IGeneralEmailSender EmailSender
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @using Microsoft.AspNetCore.Identity
 @using System.Security.Claims
 
@@ -147,7 +148,15 @@
     </FooterTemplate>
 </Modal>
 
-
+<Modal @ref="EmailConfirmation" title= "Potwierdzenie wysłania maila">
+    <BodyTemplate>
+		<div class="card">
+			<div class="card-body">				
+				<h3 class="modal-title text-center">E-mail potwierdzający rezerwację został wysłany na twoją skrzynkę odbiorczą!</h3>
+			</div>
+		</div>
+	</BodyTemplate>
+</Modal>
 
 
 @code
@@ -155,6 +164,7 @@
     List<Car> Cars = [];
     List<Offer> Offers = [];
     Modal OffersModal = default!;
+    Modal EmailConfirmation = default!;
 
     int? MinYear { get; set; } = null;
     int? MaxYear { get; set; } = null;
@@ -208,7 +218,12 @@
 
     public async Task SendOfferConfirmation(Offer offer)
     {
-        await OfferService.SendRentalOfferEmailAsync("wikkob11@gmail.com", offer);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();        
+        var requiredUser = authState.User;
+        if(requiredUser is null) throw new Exception("User not authenticated");
+        var userEmail = requiredUser.FindFirst(ClaimTypes.Email)?.Value;
+        await OfferService.SendRentalOfferEmailAsync(userEmail, offer);
+        await EmailConfirmation.ShowAsync();
     }
 
 
