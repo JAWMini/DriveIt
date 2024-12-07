@@ -47,6 +47,12 @@ namespace DriveIt.Services
             return [offer];
         }
 
+        public async Task AddOffersAsync(List<Offer> offers)
+        {
+            _context.Offers.AddRange(offers);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task SendRentalOfferEmailAsync(string userEmail, Offer offer)
         {
             var token = _tokenService.GenerateToken(offer.Id, offer.OfferTimeLimit);

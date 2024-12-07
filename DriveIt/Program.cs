@@ -19,6 +19,7 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddHttpContextAccessor();
 
 // TODO
 var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
@@ -40,7 +41,7 @@ builder.Services.AddAuthentication(options =>
 // TODO
 
 
-var connectionString = "Server=tcp:driveit.database.windows.net,1433;Initial Catalog=driveIT;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";" ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??  builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -54,8 +55,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+var key = Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY");
 builder.Services.AddSingleton<IGeneralEmailSender>(sp =>
-    new SendGridEmailSender(Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY")));
+    new SendGridEmailSender(Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY")!));
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, MyIdentityEmailSender>();
 

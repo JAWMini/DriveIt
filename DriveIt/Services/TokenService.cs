@@ -29,6 +29,9 @@ namespace DriveIt.Services
                 var timeStamp = DateTime.Parse(parts[1]);
                 var offerExpirationInMinutes = int.Parse(parts[2]);
 
+                var timeNow = DateTime.UtcNow;
+                var time = (timeNow - timeStamp).TotalMinutes;
+
                 if ((DateTime.UtcNow - timeStamp).TotalMinutes > offerExpirationInMinutes)
                 {
                     // Token has expired
