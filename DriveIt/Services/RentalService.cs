@@ -6,6 +6,7 @@ using DriveIt.Data;
 using SendGrid.Helpers.Mail;
 using System.Net.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace DriveIt.Services
 {
@@ -57,6 +58,11 @@ namespace DriveIt.Services
             return await _context.Rentals.FindAsync(id);
         }
 
+        public async Task<List<Rental>> GetActiveRentalsAsync()
+        {
+           return await _context.Rentals.Where(r => r.Status == RentalStatus.Rented).ToListAsync();
+        }
+
         public async Task<List<Rental>> GetActiveRentalsByUserIdAsync(Guid userId)
         {
             return await _context.Rentals.Where(r => r.UserId == userId && r.Status == RentalStatus.Rented).ToListAsync();
@@ -65,6 +71,17 @@ namespace DriveIt.Services
         public async Task<List<Rental>> GetAcceptanceRequestedRentalByUserIdAsync(Guid userId)
         {
             return await _context.Rentals.Where(r => r.UserId == userId && r.Status == RentalStatus.AcceptanceRequested).ToListAsync();
+        }
+
+        public async Task <List<Rental>> GetRequestedRentalsAsync()
+        {
+            return await _context.Rentals.Where(r => r.Status == RentalStatus.AcceptanceRequested).ToListAsync();
+        }
+
+        public async Task DeleteRentalAsync(Rental rental)
+        {
+            _context.Rentals.Remove(rental);
+            await _context.SaveChangesAsync();
         }
 
         public async Task FinishRental(Rental rental)
