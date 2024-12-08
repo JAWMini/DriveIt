@@ -2,7 +2,7 @@
 {
     public record class RentalOffer
     {
-        public Guid Id { get; set; } = new();
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Car Car { get; set; }
         public decimal RentPricePerDay { get; init; }
         //public decimal TotalPrice => RentPricePerDay * Days;
