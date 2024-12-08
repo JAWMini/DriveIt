@@ -16,6 +16,19 @@ namespace DriveItAPI.Controllers
             _db = db;
         }
 
+        [HttpPost("{id}")]
+        public async Task PostRental(Guid id)
+        {
+            var rental = await _db.Rents.FindAsync(id);
+            if (rental is null)
+                return;
+            rental.Status = RentalStatus.Archived;
+            rental.Car.Available = true;
+            
+            await _db.SaveChangesAsync();
+           
+        }
+
 
         [HttpPost]
         public async Task<ActionResult<RentalDto>?> PostRental(RentalRequestDto rentRequestDto)

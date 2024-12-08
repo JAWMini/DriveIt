@@ -81,7 +81,9 @@ namespace DriveIt.Services
         public async Task DeleteRentalAsync(Rental rental)
         {
             _context.Rentals.Remove(rental);
+            await _httpClient.PostAsJsonAsync($"rentals/{rental.Id}", rental.Id);         
             await _context.SaveChangesAsync();
+
         }
 
         public async Task FinishRental(Rental rental)
