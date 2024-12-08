@@ -2,7 +2,7 @@
 @rendermode InteractiveServer
 @using DriveIt.Model;
 @using DriveIt.Services;
-@inject RentalService RentalService
+@inject RentalService RentalService 
 
 
 <h2 class="my-4">Aktywne wypożyczenia</h2>
@@ -88,7 +88,7 @@ else
 
     private async Task FinishRental(Rental rental)
 	{
-		await RentalService.DeleteRentalAsync(rental);
+		await RentalService.DeleteRentalAsync(rental);        
 		await LoadRentalsAsync();
 	}
 }

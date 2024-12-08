@@ -11,7 +11,7 @@
         public decimal RentPricePerDay { get; set; }
         public decimal InsurancePricePerDay { get; set; }
 
-        //public Car() { }
+        public Car() { }
 
         public Car(string brand, string model, int year, Guid id, bool available, string city, decimal rentPricePerDay, decimal insurancePricePerDay)
         {
