@@ -22,7 +22,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddHttpContextAccessor();
 
 // TODO
-var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
+var URI = /*Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ??*/ "https://localhost:7289";
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();

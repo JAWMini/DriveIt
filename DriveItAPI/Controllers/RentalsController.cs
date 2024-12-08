@@ -2,6 +2,7 @@
 using DriveItAPI.DTOs;
 using DriveItAPI.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DriveItAPI.Controllers
 {
@@ -19,17 +20,21 @@ namespace DriveItAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<RentalDto>?> PostRental(RentalRequestDto rentRequestDto)
         {
-            var offer = await _db.RentOffers.FindAsync(rentRequestDto.OfferId);
+            //var offer = await _db.RentOffers.FindAsync(rentRequestDto.OfferId);
+            var offer = await _db.RentOffers.Include(o => o.Car).FirstOrDefaultAsync(o => o.Id == rentRequestDto.OfferId);
             if (offer is null)
                 return NotFound();
 
-            var car = await _db.Cars.FindAsync(offer.Car.Id);
-            if (car is null)
-                return NotFound();
+            //var car = await _db.Cars.FindAsync(offer.Car.Id);
+            //if (car is null)
+            //    return NotFound();
+
+            var car = offer.Car;
 
             if (!car.Available)
                 return BadRequest("Car is not available");
 
+             car.Available = false;
             var rental = new Rental(Guid.NewGuid(), car, rentRequestDto.UserId, DateTime.Now);
 
             _db.Rents.Add(rental);

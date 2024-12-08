@@ -7,6 +7,10 @@
         public Guid UserId { get; set; }
         public DateTime StartDate { get; set; }
 
+        public DateTime? ReturnDate { get; set; }
+        public DateTime? AcceptedDate { get; set; }
+        public RentalStatus Status { get; set; } = RentalStatus.Rented;
+
         public Rental() { }
 
         public Rental(Guid id, Car car, Guid userId, DateTime startDate)
@@ -16,5 +20,13 @@
             UserId = userId;
             StartDate = startDate;
         }
+    }
+
+    public enum RentalStatus
+    {
+        Rented,
+        AcceptanceRequested,
+        Accepted,
+        Rejected,
     }
 }
