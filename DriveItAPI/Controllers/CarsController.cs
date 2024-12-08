@@ -19,6 +19,11 @@ namespace DriveItAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<List<CarDto>>> GetCars()
         {
+            // TODO: Usunąć
+            await _db.Cars.ForEachAsync(c => c.Available = true);
+            await _db.SaveChangesAsync();
+            // Koniec TODO
+
             return await _db.Cars.
                 Where(c => c.Available).
                 Select(c => new CarDto(c.Brand, c.Model, c.Year, c.Id, c.City)).

@@ -1,9 +1,14 @@
-﻿namespace DriveIt.Model
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DriveIt.Model
 {
     public class Rental
     {
         public Guid Id { get; set; }
+
+        //[NotMapped]
         public Car Car { get; set; }
+
         public Guid UserId { get; set; }
         public DateTime StartDate { get; set; }
 

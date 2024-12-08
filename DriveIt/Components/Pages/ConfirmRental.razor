@@ -127,9 +127,9 @@ else
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var requiredUser = authState.User;
         var userID = requiredUser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var Rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(userID)); // potwierdzenie oferty w API
+        var rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(userID)); // potwierdzenie oferty w API
         await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
-        await RentalService.AddRentalAsync(Rental); // dodanie wypożyczenia do bazy danych frontendu
+        await RentalService.AddRentalAsync(rental); // dodanie wypożyczenia do bazy danych frontendu
 
         Navigation.NavigateTo("/moje-wypozyczenia");
     }

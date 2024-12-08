@@ -1,4 +1,5 @@
-﻿@page "/RentedCars"
+﻿@page "/moje-wypozyczenia"
+@rendermode InteractiveServer
 
 @using DriveIt.Components.Account
 @using Microsoft.AspNetCore.Identity
@@ -13,19 +14,18 @@
 @inject IdentityRedirectManager RedirectManager
 @inject IdentityUserAccessor UserAccessor
 @inject RentalService RentalService
+@inject IHttpContextAccessor HttpContextAccessor
 
 
 @attribute [Authorize]
 
-<h3>RentedCars</h3>
 
-@* <h1 class="text-center my-4">Samochody do Wypożyczenia</h1> *@
 
 <!-- Aktywne wypożyczenia -->
 <h2 class="my-4">Aktywne wypożyczenia</h2>
 @if (activeRentals.Any())
 {
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Marka</th>
@@ -43,7 +43,7 @@
                     <td>@rental.Car.Model</td>
                     <td>@rental.Car.Year</td>
                     <td>@rental.StartDate</td>
-                    <td><button @onclick="() => FinishRental(rental)">Zwróć</button></td>
+                    <td><button class="btn btn-danger" @onclick="() => FinishRental(rental)">Zwróć</button></td>
                 </tr>
             }
         </tbody>
@@ -59,7 +59,7 @@ else
 <h2 class="my-4">Zwrócone samochody (Oczekujące na akceptację)</h2>
 @if (requestedAcceptanceRentals.Any())
 {
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Marka</th>
@@ -90,8 +90,8 @@ else
 
 @code {
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    // [CascadingParameter]
+    // private HttpContext HttpContext { get; set; } = default!;
 
     List<Rental> activeRentals = [];
     List<Rental> requestedAcceptanceRentals = [];
@@ -99,11 +99,33 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var userId = UserAccessor.GetUserId(HttpContext);
 
-        if(userId is null)
+        await LoadRentals();
+    }
+
+    private async Task FinishRental(Rental rental)
+    {
+        await RentalService.FinishRental(rental);
+        await LoadRentals();
+    }
+
+
+    private async Task LoadRentals()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+
+        if(httpContext is null)
         {
-            // RedirectManager
+            // TODO: Redirect to error page
+            return;
+        }
+
+
+        var userId = UserAccessor.GetUserId(httpContext);
+
+        if (userId is null)
+        {
+            // TODO: Redirect to login page
             return;
         }
 
@@ -111,11 +133,6 @@ else
 
         activeRentals = await RentalService.GetActiveRentalsByUserIdAsync(userGuid);
         requestedAcceptanceRentals = await RentalService.GetAcceptanceRequestedRentalByUserIdAsync(userGuid);
-    }
-
-    private async void FinishRental(Rental rental)
-    {
-        await RentalService.FinishRental(rental);
     }
 
 }
