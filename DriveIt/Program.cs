@@ -37,8 +37,7 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
-
-// TODO
+    
 
 
 var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??  builder.Configuration.GetConnectionString("DefaultConnection");

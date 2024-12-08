@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DriveIt.Data;
 using SendGrid.Helpers.Mail;
 using System.Net.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace DriveIt.Services
 {
@@ -31,6 +32,11 @@ namespace DriveIt.Services
             var response = await _httpClient.PostAsJsonAsync("rentals", RentalDTO);
 
             return await response.Content.ReadFromJsonAsync<Rental>();
+        }
+
+        public async Task<List<Rental>> GetRentalsAsync()
+        {
+            return await _context.Rentals.ToListAsync();
         }
     }
 }

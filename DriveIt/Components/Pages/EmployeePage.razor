@@ -1,0 +1,40 @@
+﻿@* @page "/employeePage";
+@using DriveIt.Model;
+@using DriveIt.Services;
+@inject RentalService RentalService
+<h3>Aktualne wypożyczenia</h3>
+
+
+<div class="row">
+    <Grid TItem="Rental"
+        Class="table table-striped"
+        AllowPaging="true"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+        AllowSorting="true"
+        Data="FilteredCars"
+        OnRowClick="OnCarClick"
+        AllowRowClick="true"
+        Responsive="true">
+
+        <GridColumns>
+            <GridColumn TItem="Car" HeaderText="Marka" SortKeySelector="item => item.Brand">@context.Brand</GridColumn>
+            <GridColumn TItem="Car" HeaderText="Model" SortKeySelector="item => item.Model">@context.Model</GridColumn>
+            <GridColumn TItem="Car" HeaderText="Rok produkcji" SortKeySelector="item => item.Year">@context.Year</GridColumn>
+            <GridColumn TItem="Car" HeaderText="Miasto" SortKeySelector="item => item.City">@context.City</GridColumn>
+        </GridColumns>
+    </Grid> 
+</div> *@
+
+@code {
+   /* List<Rental> rentals = [];
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRentalsAsync();
+    }
+
+    private async Task LoadRentalsAsync()
+    {
+		rentals = await RentalService.GetRentalsAsync();
+	}*/
+}
