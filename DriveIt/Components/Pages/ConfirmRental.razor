@@ -126,6 +126,7 @@ else
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var requiredUser = authState.User;
+        var off = offer;
         var userID = requiredUser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var Rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(userID)); // potwierdzenie oferty w API
         await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
