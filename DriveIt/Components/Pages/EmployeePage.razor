@@ -1,54 +1,80 @@
-﻿@page "/employeePage";
+﻿@page "/wypozyczenia";
+@rendermode InteractiveServer
 @using DriveIt.Model;
 @using DriveIt.Services;
 @inject RentalService RentalService
-<h3>Aktualne wypożyczenia</h3>
 
 
-<div class="row">
-    <Grid TItem="Rental"
-        Class="table table-striped"
-        AllowPaging="true"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-        AllowSorting="true"
-        Data="Rentals"
-        AllowRowClick="true"
-        Responsive="true">
+<h2 class="my-4">Aktywne wypożyczenia</h2>
+@if(activeRentals.Any())
+{
+    
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Marka</th>
+                    <th>Model</th>
+                    <th>Rok produkcji</th>
+                    <th>Data wypożyczenia</th>                   
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rental in activeRentals)
+                {
+                    <tr>
+                        <td>@rental.Car.Brand</td>
+                        <td>@rental.Car.Model</td>
+                        <td>@rental.Car.Year</td>
+                        <td>@rental.ReturnDate</td>
+                    </tr>
+                }
+            </tbody>
+        </table>    
+}
+else
+{
+	<p>Brak aktywnych wypożyczeń.</p>
+}
+<h2 class="my-4">Samochody do zwrotu</h2>
+@if(requestedRentals.Any())
+{
+	
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Marka</th>
+					<th>Model</th>
+					<th>Rok produkcji</th>
+					<th>Data zwrotu</th>
+                    <th>Zwróć</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var rental in requestedRentals)
+				{
+					<tr>
+						<td>@rental.Car.Brand</td>
+						<td>@rental.Car.Model</td>
+						<td>@rental.Car.Year</td>
+						<td>@rental.ReturnDate</td>
+                        <td><button class="btn btn-danger" @onclick="() => FinishRental(rental)">Zaakceptuj zwrot</button></td>
+					</tr>
+				}
+			</tbody>
+		</table>    
+}
+else
+{
+	<p>Brak samochodów do zwrotu.</p>
+}
 
-        <GridColumns>
-            <GridColumn TItem="Rental" HeaderText="Wypożyczający" SortKeySelector="item => item.UserId">@context.UserId</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Samochód" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Początek wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Koniec wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate.AddDays(7) +  </GridColumn>
-        </GridColumns>
-    </Grid> 
-</div> 
-<div class="row">
 
-    <Grid TItem="Rental"
-          Class="table table-striped"
-          AllowPaging="true"
-          PageSizeSelectorVisible="true"
-          PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-          AllowSorting="true"
-          Data="Rentals"
-          AllowRowClick="true"
-          Responsive="true">
 
-        <GridColumns>
-            <GridColumn TItem="Rental" HeaderText="Wypożyczający" SortKeySelector="item => item.UserId">@context.UserId</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Samochód" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Początek wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Koniec wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate.AddDays(7) +  </GridColumn>
-        </GridColumns>
-    </Grid>
-
-</div>
 
 
 @code {
-    List<Rental> Rentals = [];
+    List<Rental> activeRentals = [];
+    List<Rental> requestedRentals = [];
     protected override async Task OnInitializedAsync()
     {
         await LoadRentalsAsync();
@@ -56,6 +82,13 @@
 
     private async Task LoadRentalsAsync()
     {
-		Rentals = await RentalService.GetRentalsAsync();
+		activeRentals = await RentalService.GetActiveRentalsAsync();
+        requestedRentals = await RentalService.GetRequestedRentalsAsync();            
+	}
+
+    private async Task FinishRental(Rental rental)
+	{
+		await RentalService.DeleteRentalAsync(rental);
+		await LoadRentalsAsync();
 	}
 }

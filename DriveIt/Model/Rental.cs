@@ -32,6 +32,5 @@ namespace DriveIt.Model
         Rented,
         AcceptanceRequested,
         Accepted,
-        Rejected,
     }
 }
