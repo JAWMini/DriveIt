@@ -4,6 +4,7 @@ using DriveIt.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DriveIt.Migrations.CarRental
 {
     [DbContext(typeof(CarRentalContext))]
-    partial class CarRentalContextModelSnapshot : ModelSnapshot
+    [Migration("20241208160109_UpdateRental")]
+    partial class UpdateRental
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,43 +77,6 @@ namespace DriveIt.Migrations.CarRental
                     b.HasKey("Id");
 
                     b.ToTable("Rentals");
-                });
-
-            modelBuilder.Entity("DriveIt.Model.Rental", b =>
-                {
-                    b.OwnsOne("DriveIt.Model.Car", "Car", b1 =>
-                        {
-                            b1.Property<Guid>("RentalId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Brand")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<Guid>("Id")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Model")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<int>("Year")
-                                .HasColumnType("int");
-
-                            b1.HasKey("RentalId");
-
-                            b1.ToTable("Rentals");
-
-                            b1.WithOwner()
-                                .HasForeignKey("RentalId");
-                        });
-
-                    b.Navigation("Car")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

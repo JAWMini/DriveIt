@@ -1,5 +1,8 @@
-﻿namespace DriveIt.Model
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace DriveIt.Model
 {
+    [Owned]
     public class Car
     {
         public string Brand { get; set; }
