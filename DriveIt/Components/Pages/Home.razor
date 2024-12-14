@@ -220,7 +220,16 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();        
         var requiredUser = authState.User;
-        if(requiredUser is null) throw new Exception("User not authenticated");
+        // if(requiredUser is null) throw new Exception("User not authenticated");
+
+
+        if (requiredUser is null || !requiredUser.Identity!.IsAuthenticated)
+        {
+            // Przekierowanie do logowania
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
         var userEmail = requiredUser.FindFirst(ClaimTypes.Email)?.Value;
         await OfferService.SendRentalOfferEmailAsync(userEmail, offer);
         await EmailConfirmation.ShowAsync();
