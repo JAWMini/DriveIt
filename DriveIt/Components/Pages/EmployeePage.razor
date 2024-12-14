@@ -57,7 +57,7 @@ else
 						<td>@rental.Car.Model</td>
 						<td>@rental.Car.Year</td>
 						<td>@rental.ReturnDate</td>
-                        <td><button class="btn btn-danger" @onclick="() => FinishRental(rental)">Zaakceptuj zwrot</button></td>
+                        <td><button class="btn btn-danger" @onclick="() => AcceptRental(rental)">Zaakceptuj zwrot</button></td>
 					</tr>
 				}
 			</tbody>
@@ -86,9 +86,9 @@ else
         requestedRentals = await RentalService.GetRequestedRentalsAsync();            
 	}
 
-    private async Task FinishRental(Rental rental)
+    private async Task AcceptRental(Rental rental)
 	{
-		await RentalService.DeleteRentalAsync(rental);        
+		await RentalService.AcceptRentalAsync(rental);        
 		await LoadRentalsAsync();
 	}
 }

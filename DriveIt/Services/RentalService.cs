@@ -74,18 +74,19 @@ namespace DriveIt.Services
             return await _context.Rentals.Where(r => r.Status == RentalStatus.AcceptanceRequested).ToListAsync();
         }
 
-        public async Task DeleteRentalAsync(Rental rental)
+        public async Task AcceptRentalAsync(Rental rental)
         {
-            _context.Rentals.Remove(rental);
-            await _httpClient.PostAsJsonAsync($"rentals/{rental.Id}", rental.Id);         
+            await _httpClient.PostAsJsonAsync($"rentals/accept/{rental.Id}", rental.Id);
+
+            rental.Status = RentalStatus.Accepted;
+            rental.AcceptedDate = DateTime.Now;
             await _context.SaveChangesAsync();
 
         }
 
         public async Task FinishRental(Rental rental)
         {
-
-
+            await _httpClient.PostAsJsonAsync($"rentals/return/{rental.Id}", rental.Id);
 
             rental.Status = RentalStatus.AcceptanceRequested;
             rental.ReturnDate = DateTime.Now;
