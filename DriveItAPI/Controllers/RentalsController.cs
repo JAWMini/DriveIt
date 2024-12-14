@@ -16,17 +16,34 @@ namespace DriveItAPI.Controllers
             _db = db;
         }
 
-        [HttpPost("{id}")]
+
+        [HttpPost("return/{id}")]
+        public async Task PostRentalReturn(Guid id)
+        {
+            var rental = await _db.Rents.FindAsync(id);
+
+            if (rental is null)
+                return;
+
+            rental.Status = RentalStatus.AcceptanceRequested;
+            rental.ReturnDate = DateTime.Now;
+
+            await _db.SaveChangesAsync();
+        }
+
+        [HttpPost("/accept/{id}")]
         public async Task PostRental(Guid id)
         {
             var rental = await _db.Rents.FindAsync(id);
+
             if (rental is null)
                 return;
-            rental.Status = RentalStatus.Archived;
+
+            rental.Status = RentalStatus.Accepted;
+            rental.AcceptedDate = DateTime.Now;
             rental.Car.Available = true;
-            
+
             await _db.SaveChangesAsync();
-           
         }
 
 
@@ -47,7 +64,7 @@ namespace DriveItAPI.Controllers
             if (!car.Available)
                 return BadRequest("Car is not available");
 
-             car.Available = false;
+            car.Available = false;
             var rental = new Rental(Guid.NewGuid(), car, rentRequestDto.UserId, DateTime.Now);
 
             _db.Rents.Add(rental);

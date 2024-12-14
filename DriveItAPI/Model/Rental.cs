@@ -7,6 +7,9 @@
         public Guid UserId { get; set; }
         public DateTime StartDate { get; set; }
 
+        public DateTime? ReturnDate { get; set; }
+        public DateTime? AcceptedDate { get; set; }
+
         public RentalStatus Status { get; set; } = RentalStatus.Rented;
 
         public Rental() { }
@@ -24,7 +27,6 @@
     {
         Rented,
         AcceptanceRequested,
-        Archived,
-        
+        Accepted,        
     }
 }
