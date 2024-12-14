@@ -88,6 +88,9 @@ namespace DriveIt.Services
 
         public async Task FinishRental(Rental rental)
         {
+
+
+
             rental.Status = RentalStatus.AcceptanceRequested;
             rental.ReturnDate = DateTime.Now;
             await _context.SaveChangesAsync();
