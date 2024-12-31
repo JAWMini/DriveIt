@@ -11,6 +11,7 @@
         public DateTime? AcceptedDate { get; set; }
 
         public RentalStatus Status { get; set; } = RentalStatus.Rented;
+        public decimal? Cost { get; set; }
 
         public Rental() { }
 
