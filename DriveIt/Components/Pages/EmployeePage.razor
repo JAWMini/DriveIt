@@ -5,76 +5,12 @@
 @inject RentalService RentalService 
 
 
-<h2 class="my-4">Aktywne wypożyczenia</h2>
-@if(activeRentals.Any())
-{
-    
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Marka</th>
-                    <th>Model</th>
-                    <th>Rok produkcji</th>
-                    <th>Data wypożyczenia</th>                   
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var rental in activeRentals)
-                {
-                    <tr>
-                        <td>@rental.Car.Brand</td>
-                        <td>@rental.Car.Model</td>
-                        <td>@rental.Car.Year</td>
-                        <td>@rental.ReturnDate</td>
-                    </tr>
-                }
-            </tbody>
-        </table>    
-}
-else
-{
-	<p>Brak aktywnych wypożyczeń.</p>
-}
-<h2 class="my-4">Samochody do zwrotu</h2>
-@if(requestedRentals.Any())
-{
-	
-		<table class="table table-striped">
-			<thead>
-				<tr>
-					<th>Marka</th>
-					<th>Model</th>
-					<th>Rok produkcji</th>
-					<th>Data zwrotu</th>
-                    <th>Zwróć</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach (var rental in requestedRentals)
-				{
-					<tr>
-						<td>@rental.Car.Brand</td>
-						<td>@rental.Car.Model</td>
-						<td>@rental.Car.Year</td>
-						<td>@rental.ReturnDate</td>
-                        <td><button class="btn btn-danger" @onclick="() => AcceptRental(rental)">Zaakceptuj zwrot</button></td>
-					</tr>
-				}
-			</tbody>
-		</table>    
-}
-else
-{
-	<p>Brak samochodów do zwrotu.</p>
-}
-
-
-
-
+<h1>Wypożyczenia</h1>
+<RentalsComponent IsEmployee="true" RentalFunc="AcceptRentalAsync" Rentals="Rentals"/>
 
 @code {
-    List<Rental> activeRentals = [];
-    List<Rental> requestedRentals = [];
+    List<Rental> Rentals = [];
+
     protected override async Task OnInitializedAsync()
     {
         await LoadRentalsAsync();
@@ -82,13 +18,19 @@ else
 
     private async Task LoadRentalsAsync()
     {
-		activeRentals = await RentalService.GetActiveRentalsAsync();
-        requestedRentals = await RentalService.GetRequestedRentalsAsync();            
+        Rentals = await RentalService.GetRentalsAsync();         
 	}
 
-    private async Task AcceptRental(Rental rental)
+    private async Task AcceptRentalAsync(Rental rental)
 	{
-		await RentalService.AcceptRentalAsync(rental);        
-		await LoadRentalsAsync();
+		bool status = await RentalService.AcceptRentalAsync(rental);        
+        if(status)
+        {
+            await LoadRentalsAsync();
+        }
+        else
+        {
+            // TODO: Show error message
+        }
 	}
 }

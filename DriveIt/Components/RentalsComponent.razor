@@ -1,0 +1,370 @@
+﻿@* @page "/moje-wypozyczenia" *@
+@rendermode InteractiveServer
+
+@using DriveIt.Components.Account
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Authorization
+@using DriveIt.Data
+@using DriveIt.Services
+@using DriveIt.Model
+@using System.Security.Claims
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+@inject IdentityUserAccessor UserAccessor
+@inject RentalService RentalService
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+@attribute [Authorize]
+
+
+<div class="row">
+    <div class="col-md-9">
+        <!-- Aktywne wypożyczenia -->
+        <h2 class="my-4">Aktywne wypożyczenia</h2>
+        @if (ActiveRentals.Any())
+        {
+            <Grid TItem="Rental"
+                  Class="table table-striped"
+                  AllowPaging="true"
+                  PageSizeSelectorVisible="true"
+                  PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+                  AllowSorting="true"
+                  Data="ActiveRentals"
+                  Responsive="true">
+                <GridColumns>
+                    @if(IsEmployee)
+                    {
+                        <GridColumn TItem="Rental" HeaderText="Użytkownik" Sortable="false">@context.UserId</GridColumn>
+                    }
+                    <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
+                    @if(!IsEmployee)
+                    {
+                        <GridColumn TItem="Rental" HeaderText="Zwróć" Sortable="false"><button class="btn btn-danger" @onclick="() => RentalFunc(context)">Zwróć</button></GridColumn>                        
+                    }
+                </GridColumns>
+            </Grid>
+        }
+        else
+        {
+            <div class="alert alert-warning w-50 mx-auto text-center" role="alert">
+                <strong>Brak aktywnych wypożyczeń spełniających kryteria filtrowania</strong>
+            </div>
+        }
+
+        <!-- Zwrócone samochody -->
+        <h2 class="my-4">Zwrócone samochody (Oczekujące na akceptację)</h2>
+        @if (RequestedAcceptanceRentals.Any())
+        {
+            <Grid TItem="Rental"
+                  Class="table table-striped"
+                  AllowPaging="true"
+                  PageSizeSelectorVisible="true"
+                  PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+                  AllowSorting="true"
+                  Data="RequestedAcceptanceRentals"
+                  Responsive="true">
+                <GridColumns>
+                    @if(IsEmployee)
+                                        {
+                        <GridColumn TItem="Rental" HeaderText="Użytkownik" Sortable="false">@context.UserId</GridColumn>
+                    }
+                    <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data zwrotu" SortKeySelector="item => item.ReturnDate">@context.ReturnDate</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Koszt" SortKeySelector="item => item.Cost">@context.Cost</GridColumn>
+                    @if(IsEmployee)
+                    {
+                        <GridColumn TItem="Rental" HeaderText="Akceptuj" Sortable="false"><button class="btn btn-success" @onclick="() => RentalFunc(context)">Akceptuj</button></GridColumn>
+                    }
+                </GridColumns>
+            </Grid>
+        }
+        else
+        {
+            <div class="alert alert-warning w-50 mx-auto text-center" role="alert">
+                <strong>Brak zwróconych samochodów oczekujących na akceptację spełniających kryteria filtrowania</strong>
+            </div>
+        }
+
+        <!-- Zaakceptowane zwroty -->
+        <h2 class="my-4">Zwrócone samochody (Zaakceptowane)</h2>
+        @if (AcceptedRentals.Any())
+        {
+            <Grid TItem="Rental"
+                  Class="table table-striped"
+                  AllowPaging="true"
+                  PageSizeSelectorVisible="true"
+                  PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
+                  AllowSorting="true"
+                  Data="AcceptedRentals"
+                  Responsive="true">
+                <GridColumns>
+                    @if(IsEmployee)
+                    {
+                        <GridColumn TItem="Rental" HeaderText="Użytkownik" Sortable="false">@context.UserId</GridColumn>
+                    }
+                    <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data zwrotu" SortKeySelector="item => item.ReturnDate">@context.ReturnDate</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Data akceptacji" SortKeySelector="item => item.AcceptedDate">@context.AcceptedDate</GridColumn>
+                    <GridColumn TItem="Rental" HeaderText="Koszt" SortKeySelector="item => item.Cost">@context.Cost</GridColumn>
+                </GridColumns>
+            </Grid>
+        }
+        else
+        {
+            <div class="alert alert-warning w-50 mx-auto text-center" role="alert">
+                <strong>Brak zaakceptowanych zwrotów spełniających kryteria filtrowania</strong>
+            </div>
+        }
+    </div>
+    <div class="col-md-3">
+        @if (Rentals.Count > 0)
+        {
+
+            <button class="btn btn-secondary mb-3" @onclick="ClearFilters">Wyczyść filtry</button>
+            <Accordion>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Marka i Model</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
+                        @foreach (var brand in DistinctBrands)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand)" id="@brand" @onchange="(e) => ToggleBrandSelection(brand, e)" />
+                                <label class="form-check-label" for="@brand">@brand</label>
+                            </div>
+                            var models = Cars.Where(car => car.Brand == brand).Select(car => car.Model).Distinct();
+                            <div style="margin-left: 20px;">
+                                @foreach (var model in models)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" checked="@SelectedBrandModels.Any(car => car.brand == brand && car.model == model)" id="@model" @onchange="(e) => ToggleModelSelection(brand, model, e)" />
+                                        <label class="form-check-label" for="@model">@model</label>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Rok produkcji</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minYear" class="form-label">Minimalny rok:</label>
+                            <input type="number" class="form-control" id="minYear" @bind="MinProductionYear" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxYear" class="form-label">Maksymalny rok:</label>
+                            <input type="number" class="form-control" id="maxYear" @bind="MaxProductionYear" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Miasto</h4>
+                    </TitleTemplate>
+                    <Content>
+                        @foreach (var city in DistinctCities)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked="@SelectedCities.Contains(city)" id="@city" @onchange="(e) => ToggleCitySelection(city, e)" />
+                                <label class="form-check-label" for="@city">@city</label>
+                            </div>
+                        }
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Data wypożyczenia</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minRentalDate" class="form-label">Minimalna data:</label>
+                            <input type="date" class="form-control" id="minRentalDate" @bind="MinStartDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxRentalDate" class="form-label">Maksymalna data:</label>
+                            <input type="date" class="form-control" id="maxRentalDate" @bind="MaxStartDate" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Data zwrotu</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minReturnDate" class="form-label">Minimalna data:</label>
+                            <input type="date" class="form-control" id="minReturnDate" @bind="MinReturnDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxReturnDate" class="form-label">Maksymalna data:</label>
+                            <input type="date" class="form-control" id="maxReturnDate" @bind="MaxReturnDate" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Data akceptacji</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minAcceptedDate" class="form-label">Minimalna data:</label>
+                            <input type="date" class="form-control" id="minAcceptedDate" @bind="MinAcceptedDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxAcceptedDate" class="form-label">Maksymalna data:</label>
+                            <input type="date" class="form-control" id="maxAcceptedDate" @bind="MaxAcceptedDate" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+                <AccordionItem>
+                    <TitleTemplate>
+                        <h4 class="card-title">Koszt</h4>
+                    </TitleTemplate>
+                    <Content>
+                        <div class="mb-3">
+                            <label for="minCost" class="form-label">Minimalny koszt:</label>
+                            <input type="number" class="form-control" id="minCost" @bind="MinCost" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxCost" class="form-label">Maksymalny koszt:</label>
+                            <input type="number" class="form-control" id="maxCost" @bind="MaxCost" />
+                        </div>
+                    </Content>
+                </AccordionItem>
+            </Accordion>
+        }
+        else
+        {
+            <div class="alert alert-info w-50 mx-auto" role="alert">
+                <strong>Brak dostępnych filtrów.</strong>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+
+    [Parameter] public bool IsEmployee { get; set; } = false;
+    [Parameter] public Func<Rental, Task> RentalFunc { get; set; } = default!;
+
+    [Parameter] public List<Rental> Rentals { get; set; } = [];
+
+    IEnumerable<Rental> ActiveRentals => FilteredRentals.Where(rental => rental.Status == RentalStatus.Rented);
+    IEnumerable<Rental> RequestedAcceptanceRentals => FilteredRentals.Where(rental => rental.Status == RentalStatus.AcceptanceRequested);
+    IEnumerable<Rental> AcceptedRentals => FilteredRentals.Where(rental => rental.Status == RentalStatus.Accepted);
+
+
+    HashSet<(string brand, string model)> SelectedBrandModels = [];
+    HashSet<string> SelectedCities = [];
+
+    IEnumerable<Car> Cars => Rentals.Select(rental => rental.Car);
+    IEnumerable<string> DistinctCities => (from car in Cars select car.City).Distinct();
+    IEnumerable<string> DistinctBrands => (from car in Cars select car.Brand).Distinct();
+
+    int? MinProductionYear { get; set; } = null;
+    int? MaxProductionYear { get; set; } = null;
+
+    DateTime? MinStartDate { get; set; } = null;
+    DateTime? MaxStartDate { get; set; } = null;
+
+    DateTime? MinReturnDate { get; set; } = null;
+    DateTime? MaxReturnDate { get; set; } = null;
+
+    DateTime? MinAcceptedDate { get; set; } = null;
+    DateTime? MaxAcceptedDate { get; set; } = null;
+
+    decimal? MinCost { get; set; } = null;
+    decimal? MaxCost { get; set; } = null;
+
+
+
+
+    IEnumerable<Rental> FilteredRentals => (from rental in Rentals
+                                            where (SelectedBrandModels.Count == 0 || SelectedBrandModels.Contains((rental.Car.Brand, rental.Car.Model))) &&
+                                            (MinProductionYear is null || rental.Car.Year >= MinProductionYear) && (MaxProductionYear is null || rental.Car.Year <= MaxProductionYear) && (SelectedCities.Count == 0 || SelectedCities.Contains(rental.Car.City))
+                                            && (MinStartDate is null || rental.StartDate >= MinStartDate) && (MaxStartDate is null || rental.StartDate <= MaxStartDate)
+                                            && (MinReturnDate is null || rental.ReturnDate >= MinReturnDate) && (MaxReturnDate is null || rental.ReturnDate <= MaxReturnDate)
+                                            && (MinAcceptedDate is null || rental.AcceptedDate >= MinAcceptedDate) && (MaxAcceptedDate is null || rental.AcceptedDate <= MaxAcceptedDate)
+                                            && (MinCost is null || rental.Cost >= MinCost) && (MaxCost is null || rental.Cost <= MaxCost)
+                                            select rental);
+
+
+    private void ClearFilters(MouseEventArgs e)
+    {
+        SelectedBrandModels.Clear();
+        SelectedCities.Clear();
+        MinProductionYear = null;
+        MaxProductionYear = null;
+        MinStartDate = null;
+        MaxStartDate = null;
+        MinReturnDate = null;
+        MaxReturnDate = null;
+        MinAcceptedDate = null;
+        MaxAcceptedDate = null;
+        MinCost = null;
+        MaxCost = null;
+    }
+
+    // Funkcja do zaznaczania/odznaczania marek
+    private void ToggleBrandSelection(string brand, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            var modelsToAdd = Cars.Where(car => car.Brand == brand).Select(car => (brand, car.Model));
+            SelectedBrandModels.UnionWith(modelsToAdd);
+        }
+        else
+        {
+            SelectedBrandModels.RemoveWhere(car => car.brand == brand);
+        }
+    }
+
+    // Funkcja do zaznaczania/odznaczania modeli
+    private void ToggleModelSelection(string brand, string model, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedBrandModels.Add((brand, model));
+        }
+        else
+        {
+            SelectedBrandModels.Remove((brand, model));
+        }
+    }
+
+    private void ToggleCitySelection(string city, object isChecked)
+    {
+        if ((bool)((ChangeEventArgs)isChecked)?.Value! == true)
+        {
+            SelectedCities.Add(city);
+        }
+        else
+        {
+            SelectedCities.Remove(city);
+        }
+    }
+
+}

@@ -62,40 +62,25 @@ namespace DriveIt.Services
         {
             return await _context.Rentals.Where(r => r.UserId == userId).ToListAsync();
         }
-        public async Task<List<Rental>> GetRentlsAsync()
+        public async Task<List<Rental>> GetRentalsAsync()
         {
             return await _context.Rentals.ToListAsync();
         }
 
 
-        public async Task<List<Rental>> GetActiveRentalsAsync()
+        public async Task<bool> AcceptRentalAsync(Rental rental)
         {
-           return await _context.Rentals.Where(r => r.Status == RentalStatus.Rented).ToListAsync();
-        }
+            var response = await _httpClient.PostAsJsonAsync($"rentals/accept/{rental.Id}", rental.Id);
 
-        public async Task<List<Rental>> GetActiveRentalsByUserIdAsync(Guid userId)
-        {
-            return await _context.Rentals.Where(r => r.UserId == userId && r.Status == RentalStatus.Rented).ToListAsync();
-        }
-
-        public async Task<List<Rental>> GetAcceptanceRequestedRentalByUserIdAsync(Guid userId)
-        {
-            return await _context.Rentals.Where(r => r.UserId == userId && r.Status == RentalStatus.AcceptanceRequested).ToListAsync();
-        }
-
-        public async Task <List<Rental>> GetRequestedRentalsAsync()
-        {
-            return await _context.Rentals.Where(r => r.Status == RentalStatus.AcceptanceRequested).ToListAsync();
-        }
-
-        public async Task AcceptRentalAsync(Rental rental)
-        {
-            await _httpClient.PostAsJsonAsync($"rentals/accept/{rental.Id}", rental.Id);
+            if (!response.IsSuccessStatusCode)
+            {
+                return false;
+            }
 
             rental.Status = RentalStatus.Accepted;
             rental.AcceptedDate = DateTime.Now;
             await _context.SaveChangesAsync();
-
+            return true;
         }
 
         public async Task<bool> FinishRental(Rental rental)
@@ -108,7 +93,10 @@ namespace DriveIt.Services
             }
 
             decimal? cost = await response.Content.ReadFromJsonAsync<decimal>();
-
+            if(cost is null)
+            {
+                return false;
+            }
 
             rental.Status = RentalStatus.AcceptanceRequested;
             rental.ReturnDate = DateTime.Now;
@@ -118,10 +106,7 @@ namespace DriveIt.Services
             return true;
         }
 
-        public async Task<List<Rental>> GetRentalsAsync()
-        {
-            return await _context.Rentals.ToListAsync();
-        }
+
 
 
         public async Task SendRentalConfirmationEmailAsync(string userEmail, Rental rental)
