@@ -22,167 +22,21 @@
 
 @attribute [Authorize]
 
-
-
-<!-- Aktywne wypożyczenia -->
-<h2 class="my-4">Aktywne wypożyczenia</h2>
-@if (activeRentals.Any())
-{
-    <Grid TItem="Rental"
-          Class="table table-striped"
-          AllowPaging="true"
-          PageSizeSelectorVisible="true"
-          PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-          AllowSorting="true"
-          Data="activeRentals"
-          FixedHeader="true"
-          Responsive="true">
-
-        <GridColumns>
-            <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Zwróć" Sortable="false"><button class="btn btn-danger" @onclick="() => FinishRental(context)">Zwróć</button></GridColumn>
-        </GridColumns>
-    </Grid>
-
-    @*
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Marka</th>
-                <th>Model</th>
-                <th>Rok produkcji</th>
-                <th>Data wypożyczenia</th>
-                <th>Zwróć</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var rental in activeRentals)
-            {
-                <tr>
-                    <td>@rental.Car.Brand</td>
-                    <td>@rental.Car.Model</td>
-                    <td>@rental.Car.Year</td>
-                    <td>@rental.StartDate</td>
-                    <td><button class="btn btn-danger" @onclick="() => FinishRental(rental)">Zwróć</button></td>
-                </tr>
-            }
-        </tbody>
-    </table> *@
-
-}
-else
-{
-    <p>Brak aktywnych wypożyczeń.</p>
-}
-
-<!-- Zwrócone samochody -->
-<h2 class="my-4">Zwrócone samochody (Oczekujące na akceptację)</h2>
-@if (requestedAcceptanceRentals.Any())
-{
-    <Grid TItem="Rental"
-          Class="table table-striped"
-          AllowPaging="true"
-          PageSizeSelectorVisible="true"
-          PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-          AllowSorting="true"
-          Data="requestedAcceptanceRentals"
-          FixedHeader="true"
-          Responsive="true">
-        <GridColumns>
-            <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data zwrotu" SortKeySelector="item => item.ReturnDate">@context.ReturnDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Koszt" SortKeySelector="item => item.Cost">@context.Cost</GridColumn>
-        </GridColumns>
-    </Grid>
-
-
-    @*     <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Marka</th>
-                <th>Model</th>
-                <th>Rok produkcji</th>
-                <th>Data zwrotu</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var rental in requestedAcceptanceRentals)
-            {
-                <tr>
-                    <td>@rental.Car.Brand</td>
-                    <td>@rental.Car.Model</td>
-                    <td>@rental.Car.Year</td>
-                    <td>@rental.ReturnDate</td>
-                </tr>
-            }
-        </tbody>
-    </table> *@
-}
-else
-{
-    <p>Brak zwróconych samochodów oczekujących na akceptację.</p>
-}
-
-<!-- Zaakceptowane zwroty -->
-<h2 class="my-4">Zwrócone samochody (Zaakceptowane)</h2>
-@if (acceptedRentals.Any())
-{
-    <Grid TItem="Rental"
-          Class="table table-striped"
-          AllowPaging="true"
-          PageSizeSelectorVisible="true"
-          PageSizeSelectorItems="@(new int[] { 5,10,20,30,50 })"
-          AllowSorting="true"
-          Data="acceptedRentals"
-          FixedHeader="true"
-          Responsive="true">
-        <GridColumns>
-            <GridColumn TItem="Rental" HeaderText="Marka" SortKeySelector="item => item.Car.Brand">@context.Car.Brand</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Model" SortKeySelector="item => item.Car.Model">@context.Car.Model</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Rok produkcji" SortKeySelector="item => item.Car.Year">@context.Car.Year</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Miasto" SortKeySelector="item => item.Car.City">@context.Car.City</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data wypożyczenia" SortKeySelector="item => item.StartDate">@context.StartDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data zwrotu" SortKeySelector="item => item.ReturnDate">@context.ReturnDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Data akceptacji" SortKeySelector="item => item.AcceptedDate">@context.AcceptedDate</GridColumn>
-            <GridColumn TItem="Rental" HeaderText="Koszt" SortKeySelector="item => item.Cost">@context.Cost</GridColumn>
-        </GridColumns>
-    </Grid>
-}
-else
-{
-    <p>Brak zaakceptowanych zwrotów.</p>
-}
+<h1>Moje wypożyczenia</h1>
+<RentalsComponent IsEmployee="false" RentalFunc="FinishRentalAsync" Rentals="Rentals"/>
 
 @code {
 
-    // [CascadingParameter]
-    // private HttpContext HttpContext { get; set; } = default!;
 
-    // List<Rental> activeRentals = [];
-    // List<Rental> requestedAcceptanceRentals = [];
-
-    List<Rental> rentals = [];
-
-    IEnumerable<Rental> activeRentals => rentals.Where(rental => rental.Status == RentalStatus.Rented);
-    IEnumerable<Rental> requestedAcceptanceRentals => rentals.Where(rental => rental.Status == RentalStatus.AcceptanceRequested);
-    IEnumerable<Rental> acceptedRentals => rentals.Where(rental => rental.Status == RentalStatus.Accepted);
+    List<Rental> Rentals = [];
 
 
     protected override async Task OnInitializedAsync()
     {
-
         await LoadRentals();
     }
 
-    private async Task FinishRental(Rental rental)
+    private async Task FinishRentalAsync(Rental rental)
     {
         bool status = await RentalService.FinishRental(rental);
 
@@ -205,7 +59,7 @@ else
         }
         else
         {
-           // TODO: Show error message
+            // TODO: Show error message
         }
     }
 
@@ -231,7 +85,6 @@ else
 
         Guid userGuid = Guid.Parse(userId);
 
-        rentals = await RentalService.GetRentalsByUserIdAsync(userGuid);
+        Rentals = await RentalService.GetRentalsByUserIdAsync(userGuid);
     }
-
 }

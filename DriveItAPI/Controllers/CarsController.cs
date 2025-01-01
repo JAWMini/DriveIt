@@ -20,8 +20,8 @@ namespace DriveItAPI.Controllers
         public async Task<ActionResult<List<CarDto>>> GetCars()
         {
             // TODO: Usunąć
-            await _db.Cars.ForEachAsync(c => c.Available = true);
-            await _db.SaveChangesAsync();
+            //await _db.Cars.ForEachAsync(c => c.Available = true);
+            //await _db.SaveChangesAsync();
             // Koniec TODO
 
             return await _db.Cars.

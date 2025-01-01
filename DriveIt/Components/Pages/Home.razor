@@ -54,7 +54,7 @@
             <Accordion>
                 <AccordionItem>
                     <TitleTemplate>
-                    <h4 class="card-title">Filtrowanie</h4>
+                    <h4 class="card-title">Marka i model</h4>
                     </TitleTemplate>
                     <Content>
                         <h5 class="card-subtitle mb-2 mt-4">Marka</h5>
@@ -278,6 +278,7 @@
     private void ClearFilters(MouseEventArgs e)
     {
         SelectedBrandModels.Clear();
+        SelectedCities.Clear();
         MinYear = null;
         MaxYear = null;
     }    
