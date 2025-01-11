@@ -51,15 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_205D7A119C074BB8BE03E3A9AE607774 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_955F53843068437FBD447B0B01F2EB46 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F26B191BE5A74572881318BD5789DC90 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_84D2BB6654DC4DA0934DC2BA2316E1E4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_ECB2F419800247BC9142226BD94D5CA1 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FD240D85592147FD90E0012A63FBE4BE }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DriveIt'
+          app-name: 'Drive-It'
           slot-name: 'Production'
           package: .
           
