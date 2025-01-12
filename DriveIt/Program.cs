@@ -2,6 +2,7 @@ using DriveIt.Components;
 using DriveIt.Components.Account;
 using DriveIt.Data;
 using DriveIt.EmailSenders;
+using DriveIt.SeedRoles;
 using DriveIt.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,7 +23,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddHttpContextAccessor();
 
 // TODO
-var URI = /*Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ??*/ "https://localhost:7289";
+var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
@@ -51,10 +52,15 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDbContext<CarRentalContext>(opt =>
     opt.UseSqlServer(connectionString));
 
+
+
+
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
 
 //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 var key = Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY");
@@ -87,5 +93,9 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+var sc = app.Services.CreateScope();
+var roleManager = sc.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+await SeedRoles.EnsureRolesAsync(roleManager);
 
 app.Run();
