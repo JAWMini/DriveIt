@@ -16,29 +16,59 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
 
-<PageTitle>Register</PageTitle>
+<PageTitle>External Login</PageTitle>
 
 <StatusMessage Message="@message" />
-<h1>Register</h1>
-<h2>Associate your @ProviderDisplayName account.</h2>
+
+<h1>Register via external provider</h1>
 <hr />
 
-<div  class="alert alert-info">
+<div class="alert alert-info">
     You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
+    Please complete your registration details and confirm your email address to activate your account.
 </div>
 
 <div class="row">
     <div class="col-md-4">
-        <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+        <EditForm Model="@Input" OnValidSubmit="@OnValidSubmitAsync" FormName="externalRegister" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
+
+            <!-- First Name -->
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FirstName" class="form-control" placeholder="First Name" />
+                <label for="first-name">First Name</label>
+                <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" placeholder="Last Name" />
+                <label for="last-name">Last Name</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger" />
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-floating mb-3">
+                <InputDate @bind-Value="Input.DateOfBirth" class="form-control" placeholder="Date of Birth" />
+                <label for="date-of-birth">Date of Birth</label>
+                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+            </div>
+
+            <!-- Driver License Year -->
+            <div class="form-floating mb-3">
+                <InputNumber @bind-Value="Input.DriverLicenseYear" class="form-control" placeholder="Driver License Year" />
+                <label for="driver-license-year">Driver License Year</label>
+                <ValidationMessage For="() => Input.DriverLicenseYear" class="text-danger" />
+            </div>
+
+            <!-- Email -->
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email." />
                 <label for="email" class="form-label">Email</label>
                 <ValidationMessage For="() => Input.Email" />
             </div>
+
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
@@ -69,36 +99,42 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Obsługa błędów z dostawcy zewnętrznego
         if (RemoteError is not null)
         {
             RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+            return;
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null)
         {
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+            return;
         }
 
         externalLoginInfo = info;
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
+            // Jeśli to jest callback (np. ?Action=LoginCallback)
             if (Action == LoginCallbackAction)
             {
                 await OnLoginCallbackAsync();
                 return;
             }
 
-            // We should only reach this page via the login callback, so redirect back to
-            // the login page if we get here some other way.
+            // Domyślnie, jeśli to nie jest callback, wracamy do /Account/Login
             RedirectManager.RedirectTo("Account/Login");
         }
     }
 
+    /// <summary>
+    /// Obsługa callbacka - jeśli użytkownik już istnieje, zaloguj go.
+    /// Jeśli nie istnieje, pozostaw go na stronie wypełniania formularza.
+    /// </summary>
     private async Task OnLoginCallbackAsync()
     {
-        // Sign in the user with this external login provider if the user already has a login.
         var result = await SignInManager.ExternalLoginSignInAsync(
             externalLoginInfo.LoginProvider,
             externalLoginInfo.ProviderKey,
@@ -111,6 +147,7 @@
                 "{Name} logged in with {LoginProvider} provider.",
                 externalLoginInfo.Principal.Identity?.Name,
                 externalLoginInfo.LoginProvider);
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut)
@@ -118,62 +155,90 @@
             RedirectManager.RedirectTo("Account/Lockout");
         }
 
-        // If the user does not have an account, then ask the user to create an account.
+        // Jeśli nie ma konta, pozostajemy na stronie, aby użytkownik wypełnił formularz
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
         {
             Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
         }
     }
 
+    /// <summary>
+    /// Tworzymy konto w bazie danych bez hasła.
+    /// </summary>
     private async Task OnValidSubmitAsync()
     {
+        // Tworzymy obiekt Customer (dziedziczy po ApplicationUser)
+        var customer = CreateCustomer();
+
+        // Ustaw dane klienta
+        customer.FirstName = Input.FirstName;
+        customer.LastName = Input.LastName;
+        customer.DateOfBirth = Input.DateOfBirth;
+        customer.DriverLicenseYear = Input.DriverLicenseYear;
+
+        // Ustaw nazwę użytkownika i email
+        await UserStore.SetUserNameAsync(customer, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
-        var user = CreateUser();
+        await emailStore.SetEmailAsync(customer, Input.Email, CancellationToken.None);
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
-        var result = await UserManager.CreateAsync(user);
-        if (result.Succeeded)
+        // Tworzymy użytkownika w bazie bez hasła
+        var result = await UserManager.CreateAsync(customer);
+        if (!result.Succeeded)
         {
-            result = await UserManager.AddLoginAsync(user, externalLoginInfo);
-            if (result.Succeeded)
-            {
-                Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
-
-                var userId = await UserManager.GetUserIdAsync(user);
-                var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                    new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-                // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                }
-
-                await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
-                RedirectManager.RedirectTo(ReturnUrl);
-            }
+            message = $"Error: {string.Join(",", result.Errors.Select(e => e.Description))}";
+            return;
         }
 
-        message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+        // Dodajemy login zewnętrzny
+        result = await UserManager.AddLoginAsync(customer, externalLoginInfo);
+        if (!result.Succeeded)
+        {
+            message = $"Error: {string.Join(",", result.Errors.Select(e => e.Description))}";
+            return;
+        }
+
+        Logger.LogInformation("User created an account with external provider ({Provider}).", externalLoginInfo.LoginProvider);
+
+        // Generujemy kod potwierdzający email
+        var userId = await UserManager.GetUserIdAsync(customer);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(customer);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+
+        // Wysyłamy link z potwierdzeniem
+        bool success = true;
+        try
+        {
+            await EmailSender.SendConfirmationLinkAsync(customer, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        }
+        catch (InvalidOperationException)
+        {
+            success = false;
+        }
+
+        if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        {
+            RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email, ["success"] = success });
+            return;
+        }
+
+        // Logujemy użytkownika
+        await SignInManager.SignInAsync(customer, isPersistent: false, externalLoginInfo.LoginProvider);
+        RedirectManager.RedirectTo(ReturnUrl);
     }
 
-    private ApplicationUser CreateUser()
+    private Customer CreateCustomer()
     {
         try
         {
-            return Activator.CreateInstance<ApplicationUser>();
+            return Activator.CreateInstance<Customer>();
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor");
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(Customer)}'. " +
+                $"Ensure that '{nameof(Customer)}' is not an abstract class and has a parameterless constructor.");
         }
     }
 
@@ -188,6 +253,19 @@
 
     private sealed class InputModel
     {
+        [Required]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime DateOfBirth { get; set; } = DateTime.Today;
+
+        [Required]
+        public int DriverLicenseYear { get; set; } = DateTime.Now.Year;
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = "";
