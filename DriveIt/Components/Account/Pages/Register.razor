@@ -132,7 +132,13 @@
             success = false;
         }
 
-        
+        if (success)
+        {
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+            await UserManager.AddToRoleAsync(user, "User");
+        }
+
+
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo(
@@ -140,6 +146,9 @@
                 new() { ["email"] = Input.Email, ["success"] = success });
             return;
         }
+
+      
+
 
         await SignInManager.SignInAsync(customer, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
