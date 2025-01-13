@@ -19,12 +19,17 @@ namespace DriveIt.Data
                 .HasValue<ApplicationUser>("ApplicationUser")
                 .HasValue<Customer>("Customer");
 
+            builder.Entity<ApplicationUser>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<ApplicationUser>("ApplicationUser")
+                .HasValue<Employee>("Employee");
+
             // Konfiguracja dla klasy Customer
             builder.Entity<Customer>(entity =>
             {
                 entity.Property(c => c.DateOfBirth).IsRequired();
                 entity.Property(c => c.DriverLicenseYear).IsRequired();
-            });
+            });            
         }
     }
 }
