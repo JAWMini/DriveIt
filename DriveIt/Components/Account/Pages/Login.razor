@@ -116,6 +116,10 @@
 
             await HttpContext.SignInAsync("CookieAuth", new ClaimsPrincipal(claimsIdentity));
 
+            if(roles[0] == "Employee")
+            {
+                RedirectManager.RedirectTo("/wypozyczenia");
+            }
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

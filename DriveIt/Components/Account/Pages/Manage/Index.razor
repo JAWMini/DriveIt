@@ -42,18 +42,20 @@
                 <label for="last-name" class="form-label">Last Name</label>
                 <ValidationMessage For="() => Input.LastName" class="text-danger" />
             </div>
+            @if (user is Customer)
+            {
+                <div class="form-floating mb-3">
+                    <InputDate @bind-Value="Input.DateOfBirth" class="form-control" placeholder="Date of Birth" />
+                    <label for="date-of-birth" class="form-label">Date of Birth</label>
+                    <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
+                </div>
 
-            <div class="form-floating mb-3">
-                <InputDate @bind-Value="Input.DateOfBirth" class="form-control" placeholder="Date of Birth" />
-                <label for="date-of-birth" class="form-label">Date of Birth</label>
-                <ValidationMessage For="() => Input.DateOfBirth" class="text-danger" />
-            </div>
-
-            <div class="form-floating mb-3">
-                <InputNumber @bind-Value="Input.DriverLicenseYear" class="form-control" placeholder="Driver License Year" />
-                <label for="driver-license-year" class="form-label">Driver License Year</label>
-                <ValidationMessage For="() => Input.DriverLicenseYear" class="text-danger" />
-            </div>
+                <div class="form-floating mb-3">
+                    <InputNumber @bind-Value="Input.DriverLicenseYear" class="form-control" placeholder="Driver License Year" />
+                    <label for="driver-license-year" class="form-label">Driver License Year</label>
+                    <ValidationMessage For="() => Input.DriverLicenseYear" class="text-danger" />
+                </div>
+            }
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </EditForm>
     </div>
@@ -82,6 +84,11 @@
             Input.DateOfBirth ??= customer.DateOfBirth;
             Input.DriverLicenseYear ??= customer.DriverLicenseYear;
         }
+        else if (user is Employee employee)
+		{
+			Input.FirstName ??= employee.FirstName;
+			Input.LastName ??= employee.LastName;
+		}
 
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
