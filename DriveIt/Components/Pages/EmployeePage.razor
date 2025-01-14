@@ -2,14 +2,72 @@
 @rendermode InteractiveServer
 @using DriveIt.Model;
 @using DriveIt.Services;
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
 @inject RentalService RentalService 
 
 
 <h1>Wypożyczenia</h1>
 <RentalsComponent IsEmployee="true" RentalFunc="AcceptRentalAsync" Rentals="Rentals"/>
 
+<Modal @ref="modal" @onclose="HandleClose">
+    <BodyTemplate>
+    <div class="modal-dialog">
+        <div class="modal-content p-4">
+            <EditForm Model="model" FormName="return" OnValidSubmit="SubmitReturnAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
+
+                <!-- Description Input -->
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="model.Description"
+                               class="form-control"
+                               placeholder="Enter description" />
+                    <label>Description</label>
+                    <ValidationMessage For="() => model.Description" class="text-danger" />
+                </div>
+
+                <!-- File Input -->
+                <div class="mb-3">
+                    <label class="form-label">Select file</label>
+                    <InputFile id="file"
+                               OnChange="HandleFileSelected"
+                               class="form-control" />
+                    @if (model.FileName != null)
+                    {
+                        <div class="form-text">
+                            Selected file: @model.FileName
+                        </div>
+                    }
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    Submit
+                </button>
+
+                @if (!string.IsNullOrEmpty(uploadMessage))
+                {
+                    <div class="alert alert-success mt-3">
+                        @uploadMessage
+                    </div>
+                }
+            </EditForm>
+        </div>
+    </div>
+    </BodyTemplate>
+    
+</Modal>
+
 @code {
     List<Rental> Rentals = [];
+
+    [SupplyParameterFromForm]
+    private ReturnModel model { get; set; } = new();
+
+    private Modal modal = default!;
+    private string uploadMessage = string.Empty;   
+    private TaskCompletionSource<bool>? modalTcs;
 
     protected override async Task OnInitializedAsync()
     {
@@ -19,18 +77,71 @@
     private async Task LoadRentalsAsync()
     {
         Rentals = await RentalService.GetRentalsAsync();         
-	}
+    }
 
     private async Task AcceptRentalAsync(Rental rental)
-	{
-		bool status = await RentalService.AcceptRentalAsync(rental);        
-        if(status)
+    {       
+        modalTcs = new TaskCompletionSource<bool>();
+        await modal.ShowAsync();    
+
+        bool result = await modalTcs.Task;
+        if(result)
         {
-            await LoadRentalsAsync();
+            bool status = await RentalService.AcceptRentalAsync(rental);
+            if (status)
+            {
+                await LoadRentalsAsync();
+            }
+            else
+            {
+                // TODO: Show error message
+            }
         }
-        else
+
+    }
+
+    private async Task SubmitReturnAsync()
+    {
+        if (model.Photo == null)
         {
-            // TODO: Show error message
+            return;
         }
-	}
+        var file = model.Photo;
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        //TODO: dodać bloba
+
+        uploadMessage = $"File uploaded successfully: {file.Name}";
+        modalTcs?.SetResult(true);
+        await modal.HideAsync();
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            model.Photo = file;
+            model.FileName = file.Name;
+        }
+    }
+
+    private async void HandleClose()
+    {
+        modalTcs?.SetResult(false);
+        await modal.HideAsync();
+    }
+
+    sealed class ReturnModel
+    {
+        [Required(ErrorMessage = "Opis jest wymagany")]
+        public String? Description { get; set; } = string.Empty;
+
+        public IBrowserFile? Photo { get; set; }
+
+        public String? FileName { get; set; }
+    }
+
 }
