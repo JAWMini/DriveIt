@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using DriveIt.Data
+@using System.Security.Claims
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
@@ -89,10 +90,36 @@
     {
         // This doesn't count login failures towards account lockout
         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+
+        var user = await SignInManager.UserManager.FindByEmailAsync(Input.Email);
+
+        if(user is null)
+        {
+            errorMessage = "Error: Invalid login attempt.";
+            return;
+        }
+
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
+
+            var roles = await SignInManager.UserManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
+            {
+              new Claim(ClaimTypes.Name, user.UserName)
+            };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
+
+            await HttpContext.SignInAsync("CookieAuth", new ClaimsPrincipal(claimsIdentity));
+
+            if(roles[0] == "Employee")
+            {
+                RedirectManager.RedirectTo("/wypozyczenia");
+            }
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

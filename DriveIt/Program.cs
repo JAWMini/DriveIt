@@ -2,6 +2,7 @@ using DriveIt.Components;
 using DriveIt.Components.Account;
 using DriveIt.Data;
 using DriveIt.EmailSenders;
+using DriveIt.SeedRoles;
 using DriveIt.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,7 +23,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddHttpContextAccessor();
 
 // TODO
-var URI = /*Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ??*/ "https://localhost:7289";
+var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
@@ -32,18 +33,21 @@ builder.Services.AddScoped<RentalService>();
 
 
 builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-})
-.AddGoogle(googleOptions =>
-{
-    googleOptions.ClientId = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTID");
-    googleOptions.ClientSecret = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
-})
-.AddIdentityCookies();
+    {
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddCookie("CookieAuth")
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    })
+    .AddIdentityCookies();
+    
 
-var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??*/  builder.Configuration.GetConnectionString("DefaultConnection");
+
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -51,10 +55,15 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDbContext<CarRentalContext>(opt =>
     opt.UseSqlServer(connectionString));
 
+
+
+
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
 
 //builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 var key = Environment.GetEnvironmentVariable("DRIVEIT_SENDGRID_API_KEY");
@@ -87,5 +96,9 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+var sc = app.Services.CreateScope();
+var roleManager = sc.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+await SeedRoles.EnsureRolesAsync(roleManager);
 
 app.Run();

@@ -2,6 +2,7 @@ using DriveItAPI.Data;
 using Microsoft.EntityFrameworkCore;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // TODO
-var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ??*/ builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer(connectionString));
 

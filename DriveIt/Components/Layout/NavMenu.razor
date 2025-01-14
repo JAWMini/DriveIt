@@ -1,6 +1,9 @@
 ﻿@implements IDisposable
 
+@using System.Security.Claims
+
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -12,41 +15,40 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        @if (user.IsInRole("User"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                </NavLink>
+            </div>
+        }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="auth">
                 <span class="bi bi-lock-nav-menu" aria-hidden="true"></span> Auth Required
             </NavLink>
         </div>
-
+        @if (user.IsInRole("User"))
+        {
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="moje-wypozyczenia">
                 <span class="bi bi-car-fill-nav-menu" aria-hidden="true"></span> Rented Cars
             </NavLink>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="wypozyczenia">
-                <span class="bi bi-car-fill-nav-menu" aria-hidden="true"></span> All rents
-            </NavLink>
-        </div>
+        }
+        else if(user.IsInRole("Employee"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="wypozyczenia">
+                    <span class="bi bi-car-fill-nav-menu" aria-hidden="true"></span> All rents
+                </NavLink>
+            </div>
+        }
+        
 
         <AuthorizeView>
             <Authorized>
@@ -84,8 +86,13 @@
 @code {
     private string? currentUrl;
 
-    protected override void OnInitialized()
+    private ClaimsPrincipal? user; 
+
+    protected override async Task OnInitializedAsync() 
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
     }
