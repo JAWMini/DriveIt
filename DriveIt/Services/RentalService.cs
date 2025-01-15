@@ -2,14 +2,8 @@
 using DriveIt.DTOs;
 using DriveIt.EmailSenders;
 using DriveIt.Model;
-<<<<<<< HEAD
-using System.Threading.Tasks;
-using DriveIt.Data;
-using SendGrid.Helpers.Mail;
-using System.Net.Http;
-=======
 using Microsoft.AspNetCore.Components;
->>>>>>> b113696 (Add email sending when renting and returning a car. Add cost calculating and displaying.)
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 
