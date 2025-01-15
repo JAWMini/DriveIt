@@ -33,6 +33,7 @@ builder.Services.AddScoped<RentalService>();
 
 
 builder.Services.AddAuthentication(options =>
+<<<<<<< HEAD
 {
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
@@ -43,6 +44,20 @@ builder.Services.AddAuthentication(options =>
     googleOptions.ClientSecret = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
 })
 .AddIdentityCookies();
+=======
+    {
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddCookie("CookieAuth")
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTID");
+        googleOptions.ClientSecret = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
+    })
+    .AddIdentityCookies();
+    
+>>>>>>> 57c4b88 (environment variables for google authentication instead of secrets)
 
 <<<<<<< HEAD
 var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??*/  builder.Configuration.GetConnectionString("DefaultConnection");
