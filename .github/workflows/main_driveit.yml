@@ -23,12 +23,6 @@ jobs:
 
       - name: Build with dotnet
         run: dotnet build './DriveIt/DriveIt.csproj' --configuration Release
-        
-      - name: Run database migrations
-        run: |
-          dotnet tool install --global dotnet-ef
-          dotnet ef database update --project './DriveIt/DriveIt.csproj' --context ApplicationDbContext --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING_BLAZOR }}"
-          dotnet ef database update --project './DriveIt/DriveIt.csproj' --context CarRentalContext --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING_BLAZOR }}"
 
       - name: dotnet publish
         run: dotnet publish './DriveIt/DriveIt.csproj' -c Release -o ./DriveIt
