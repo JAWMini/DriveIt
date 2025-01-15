@@ -29,6 +29,7 @@ builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<RentalService>();
+builder.Services.AddScoped<UserService>();
 
 
 

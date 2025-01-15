@@ -1,14 +1,18 @@
 ﻿@page "/"
+@attribute [Authorize(Roles = "User")]
+@attribute [AllowAnonymous]
 @using DriveIt.Components.Account
 @using DriveIt.Model
 @using DriveIt.Services
 @using DriveIt.EmailSenders
+@using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject CarService CarService
 @inject OfferService OfferService
 @inject IGeneralEmailSender EmailSender
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
 @using Microsoft.AspNetCore.Identity
 @using System.Security.Claims
 
@@ -204,8 +208,30 @@
         // TODO: Zmienić na adres użytkownika oraz zmienić tytuł i treść wiadomości
         // await EmailSender.SendEmailAsync("user@email.com", "Test", "Pierwsza wiadomość");
 
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        OfferRequest offerRequest = new(args.Item.Id, 5, 25);
+        if (user is null || !user.Identity!.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
+        var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
+
+        if(userEmail is null)
+        {
+            return;
+        }
+
+        var Customer= await UserService.GetUserByEmailAsync(userEmail);
+
+        if(Customer is null)
+		{
+			return;
+		}
+
+        OfferRequest offerRequest = new(args.Item.Id, DateTime.Now.Year - Customer.DriverLicenseYear, DateTime.Now.Year - Customer.DateOfBirth.Year);
         Offers = await OfferService.GetOffersAsync(offerRequest);
         await OfferService.AddOffersAsync(Offers);
         await OffersModal.ShowAsync();
@@ -214,6 +240,7 @@
     private async Task OnHideModalClick()
     {
         await OffersModal.HideAsync();
+        
     }
 
     public async Task SendOfferConfirmation(Offer offer)

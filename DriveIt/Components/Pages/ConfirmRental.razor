@@ -65,6 +65,48 @@
 else if (Token is null)
 {
     <h1 class="text-center">Oferta nieprawidłowa</h1>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="card-title mb-4">Potwierdź rezerwację</h3>
+                        <p class="text-muted mb-4">Sprawdź szczegóły przed potwierdzeniem</p>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Oferta od:</span>
+                                <strong>ABC Rental</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Cena wypożyczenia/dzień:</span>
+                                <span>20 zł</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Cena ubezpieczenia/dzień:</span>
+                                <span>100 zł</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button class="btn btn-outline-secondary flex-grow-1">Anuluj</button>
+                            <button class="btn btn-primary flex-grow-1" @onclick="ConfirmReservation">Potwierdź</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <Modal @ref="modal" Title="Potwierdzenie">
+        <BodyTemplate>
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="modal-title text-center">Udało się potwierdzić rezerwację!</h3>
+                </div>
+            </div>
+        </BodyTemplate>
+    </Modal>
 }
 else
 {
