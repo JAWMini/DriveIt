@@ -27,8 +27,15 @@ namespace DriveItAPI.Controllers
             RentalOffer rentOffer = new(car);
             _db.RentOffers.Add(rentOffer);
             _db.SaveChanges();
-
-            OfferDto rentOfferDto = new(rentOffer.Id, rentOffer.RentPricePerDay, rentOffer.InsurancePriccePerDay, rentOffer.OfferTimeLimit);
+            int ageTax = offerRequestDto.UserAge switch
+            {
+                < 21 => 20,
+                < 25 => 10,
+                < 65 => 0,
+                _ => 20
+            };
+            var rentPricePerDay = rentOffer.RentPricePerDay - offerRequestDto.DriverLicenseLength * 2 + ageTax;
+            OfferDto rentOfferDto = new(rentOffer.Id,rentPricePerDay , rentOffer.InsurancePriccePerDay, rentOffer.OfferTimeLimit);
             return rentOfferDto;
         }
     }
