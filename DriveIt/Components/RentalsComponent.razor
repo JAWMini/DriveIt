@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using DriveIt.Components.Account
+
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Authorization
@@ -265,6 +266,8 @@
     </div>
 </div>
 
+
+
 @code {
 
     [Parameter] public bool IsEmployee { get; set; } = false;
@@ -276,6 +279,11 @@
     IEnumerable<Rental> RequestedAcceptanceRentals => FilteredRentals.Where(rental => rental.Status == RentalStatus.AcceptanceRequested);
     IEnumerable<Rental> AcceptedRentals => FilteredRentals.Where(rental => rental.Status == RentalStatus.Accepted);
 
+    private Modal modal = default!;
+
+    
+
+    private String? uploadMessage = null;
 
     HashSet<(string brand, string model)> SelectedBrandModels = [];
     HashSet<string> SelectedCities = [];
@@ -366,5 +374,11 @@
             SelectedCities.Remove(city);
         }
     }
+
+    
+
+    
+
+    
 
 }
