@@ -2,6 +2,7 @@
 using DriveIt.DTOs;
 using DriveIt.EmailSenders;
 using DriveIt.Model;
+using Microsoft.AspNetCore.Components;
 using System.Text;
 using System.Text.Json;
 
@@ -13,13 +14,15 @@ namespace DriveIt.Services
         private readonly HttpClient _httpClient;
         private readonly TokenService _tokenService;
         private readonly IGeneralEmailSender _emailSender;
+        private readonly NavigationManager _navigationManager;
 
-        public OfferService(CarRentalContext context, HttpClient httpClient, TokenService tokenService, IGeneralEmailSender emailSender)
+        public OfferService(CarRentalContext context, HttpClient httpClient, TokenService tokenService, IGeneralEmailSender emailSender, NavigationManager navigationManager)
         {
             _context = context;
             _httpClient = httpClient;
             _tokenService = tokenService;
             _emailSender = emailSender;
+            _navigationManager = navigationManager;
         }
 
         // Metoda pobierająca ofertę na podstawie ID
@@ -56,7 +59,9 @@ namespace DriveIt.Services
         public async Task SendRentalOfferEmailAsync(string userEmail, Offer offer)
         {
             var token = _tokenService.GenerateToken(offer.Id, offer.OfferTimeLimit);
-            var callbackUrl = $"https://localhost:7100/potwierdzenie-wypożyczenia?token={Uri.EscapeDataString(token)}";
+            var baseUri = _navigationManager.BaseUri;
+
+            var callbackUrl = $"{baseUri}potwierdzenie-wypożyczenia?token={Uri.EscapeDataString(token)}";
 
             var emailBody = $"Kliknij w ten link, aby zaakceptować ofertę: <a href=\"{callbackUrl}\">Akceptuj ofertę</a>. Link jest ważny przez {offer.OfferTimeLimit} minut.";
 

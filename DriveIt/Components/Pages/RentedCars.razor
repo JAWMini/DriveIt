@@ -1,0 +1,121 @@
+﻿@page "/RentedCars"
+
+@using DriveIt.Components.Account
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Authorization
+@using DriveIt.Data
+@using DriveIt.Services
+@using DriveIt.Model
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+@inject IdentityUserAccessor UserAccessor
+@inject RentalService RentalService
+
+
+@attribute [Authorize]
+
+<h3>RentedCars</h3>
+
+@* <h1 class="text-center my-4">Samochody do Wypożyczenia</h1> *@
+
+<!-- Aktywne wypożyczenia -->
+<h2 class="my-4">Aktywne wypożyczenia</h2>
+@if (activeRentals.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Rok produkcji</th>
+                <th>Data wypożyczenia</th>
+                <th>Zwróć</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rental in activeRentals)
+            {
+                <tr>
+                    <td>@rental.Car.Brand</td>
+                    <td>@rental.Car.Model</td>
+                    <td>@rental.Car.Year</td>
+                    <td>@rental.StartDate</td>
+                    <td><button @onclick="() => FinishRental(rental)">Zwróć</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+else
+{
+    <p>Brak aktywnych wypożyczeń.</p>
+}
+
+<!-- Zwrócone samochody -->
+<h2 class="my-4">Zwrócone samochody (Oczekujące na akceptację)</h2>
+@if (requestedAcceptanceRentals.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Rok produkcji</th>
+                <th>Data zwrotu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rental in requestedAcceptanceRentals)
+            {
+                <tr>
+                    <td>@rental.Car.Brand</td>
+                    <td>@rental.Car.Model</td>
+                    <td>@rental.Car.Year</td>
+                    <td>@rental.ReturnDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Brak zwróconych samochodów oczekujących na akceptację.</p>
+}
+
+
+
+@code {
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    List<Rental> activeRentals = [];
+    List<Rental> requestedAcceptanceRentals = [];
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserAccessor.GetUserId(HttpContext);
+
+        if(userId is null)
+        {
+            // RedirectManager
+            return;
+        }
+
+        Guid userGuid = Guid.Parse(userId);
+
+        activeRentals = await RentalService.GetActiveRentalsByUserIdAsync(userGuid);
+        requestedAcceptanceRentals = await RentalService.GetAcceptanceRequestedRentalByUserIdAsync(userGuid);
+    }
+
+    private async void FinishRental(Rental rental)
+    {
+        await RentalService.FinishRental(rental);
+    }
+
+}
