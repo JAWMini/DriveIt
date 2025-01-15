@@ -3,13 +3,14 @@
 @using DriveIt.Model
 @using DriveIt.Services
 @using DriveIt.Components.Account
+@using System.Security.Claims
 
 @inject IdentityUserAccessor UserAccessor
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
 @inject OfferService OfferService
 @inject TokenService TokenService
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
 @inject RentalService RentalService
 
 
@@ -87,7 +88,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         // Parsowanie URL-a
-        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
         // Pobierz token
@@ -117,7 +118,7 @@ else
         // offer = await OfferService.GetOfferByIdAsync(ofertaId);
 
         if(offer is null)
-            Navigation.NavigateTo("/404");
+            NavigationManager.NavigateTo("/404");
     }
 
     private async Task ConfirmReservation()
@@ -126,11 +127,23 @@ else
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var requiredUser = authState.User;
-        var userID = requiredUser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (requiredUser is null || !requiredUser.Identity!.IsAuthenticated)
+        {
+            // Przekierowanie do logowania
+            NavigationManager.NavigateTo("/Account/Login");
+            return;
+        }
+
+        var userID = requiredUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var rental = await RentalService.ConfirmRentalAsync(offer.Id,new Guid(userID)); // potwierdzenie oferty w API
         await OfferService.DeleteOfferAsync(offer!); // usnięcie oferty z bazy danych ofert frontendu
         await RentalService.AddRentalAsync(rental); // dodanie wypożyczenia do bazy danych frontendu
 
-        Navigation.NavigateTo("/moje-wypozyczenia");
+
+        var userEmail = requiredUser.FindFirst(ClaimTypes.Email)?.Value;
+        await RentalService.SendRentalConfirmationEmailAsync(userEmail, rental);
+
+        NavigationManager.NavigateTo("/moje-wypozyczenia");
     }
 }

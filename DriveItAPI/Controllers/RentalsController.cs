@@ -18,17 +18,21 @@ namespace DriveItAPI.Controllers
 
 
         [HttpPost("return/{id}")]
-        public async Task PostRentalReturn(Guid id)
+        public async Task<decimal?> PostRentalReturn(Guid id)
         {
-            var rental = await _db.Rents.FindAsync(id);
-
+            var rental = await _db.Rents.Include(o => o.Car).FirstOrDefaultAsync(o => o.Id == id);
             if (rental is null)
-                return;
+                return null;
 
             rental.Status = RentalStatus.AcceptanceRequested;
             rental.ReturnDate = DateTime.Now;
 
+            var days = (rental.ReturnDate - rental.StartDate).Value.Days;
+            rental.Cost = days * (rental.Car.RentPricePerDay + rental.Car.InsurancePricePerDay);
+
             await _db.SaveChangesAsync();
+
+            return rental.Cost;
         }
 
         [HttpPost("/accept/{id}")]

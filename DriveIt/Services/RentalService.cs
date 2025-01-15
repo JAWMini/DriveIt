@@ -1,10 +1,15 @@
 ﻿using DriveIt.Data;
 using DriveIt.DTOs;
+using DriveIt.EmailSenders;
 using DriveIt.Model;
+<<<<<<< HEAD
 using System.Threading.Tasks;
 using DriveIt.Data;
 using SendGrid.Helpers.Mail;
 using System.Net.Http;
+=======
+using Microsoft.AspNetCore.Components;
+>>>>>>> b113696 (Add email sending when renting and returning a car. Add cost calculating and displaying.)
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 
@@ -14,11 +19,13 @@ namespace DriveIt.Services
     {
         private readonly HttpClient _httpClient;
         private readonly CarRentalContext _context;
+        private readonly IGeneralEmailSender _emailSender;
 
-        public RentalService(CarRentalContext context, HttpClient client)
+        public RentalService(CarRentalContext context, HttpClient client, IGeneralEmailSender emailSender)
         {
             _httpClient = client;
             _context = context;
+            _emailSender = emailSender;
         }
 
         public async Task AddRentalAsync(Rental rental)
@@ -58,6 +65,16 @@ namespace DriveIt.Services
             return await _context.Rentals.FindAsync(id);
         }
 
+        public async Task<List<Rental>> GetRentalsByUserIdAsync(Guid userId)
+        {
+            return await _context.Rentals.Where(r => r.UserId == userId).ToListAsync();
+        }
+        public async Task<List<Rental>> GetRentlsAsync()
+        {
+            return await _context.Rentals.ToListAsync();
+        }
+
+
         public async Task<List<Rental>> GetActiveRentalsAsync()
         {
            return await _context.Rentals.Where(r => r.Status == RentalStatus.Rented).ToListAsync();
@@ -88,18 +105,42 @@ namespace DriveIt.Services
 
         }
 
-        public async Task FinishRental(Rental rental)
+        public async Task<bool> FinishRental(Rental rental)
         {
-            await _httpClient.PostAsJsonAsync($"rentals/return/{rental.Id}", rental.Id);
+            var response = await _httpClient.PostAsJsonAsync($"rentals/return/{rental.Id}", rental.Id);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            decimal? cost = await response.Content.ReadFromJsonAsync<decimal>();
+
 
             rental.Status = RentalStatus.AcceptanceRequested;
             rental.ReturnDate = DateTime.Now;
+            rental.Cost = cost;
             await _context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<List<Rental>> GetRentalsAsync()
         {
             return await _context.Rentals.ToListAsync();
+        }
+
+
+        public async Task SendRentalConfirmationEmailAsync(string userEmail, Rental rental)
+        {
+            var emailBody = $"Rozpoczęto wypożyczenie samochodu {rental.Car.Brand} {rental.Car.Model}. Data rozpoczęcia: {rental.StartDate}.";
+            await _emailSender.SendEmailAsync(userEmail, "Rozpoczęcie wypożyczenia samochodu", emailBody);
+        }
+
+        public async Task SendRentalFinishEmailAsync(string userEmail, Rental rental)
+        {
+            var emailBody = $"Zakończono wypożyczenie samochodu {rental.Car.Brand} {rental.Car.Model}. Data zakończenia: {rental.ReturnDate}. Koszt: {rental.Cost} zł.";
+            await _emailSender.SendEmailAsync(userEmail, "Zakończenie wypożyczenia samochodu", emailBody);
         }
     }
 }

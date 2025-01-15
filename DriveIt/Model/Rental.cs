@@ -15,6 +15,7 @@ namespace DriveIt.Model
         public DateTime? ReturnDate { get; set; }
         public DateTime? AcceptedDate { get; set; }
         public RentalStatus Status { get; set; } = RentalStatus.Rented;
+        public decimal? Cost { get; set; }
 
         public Rental() { }
 
