@@ -23,11 +23,6 @@ jobs:
 
       - name: Build with dotnet
         run: dotnet build './DriveItAPI/DriveItAPI.csproj' --configuration Release
-
-      - name: Run database migrations
-        run: |
-          dotnet tool install --global dotnet-ef
-          dotnet ef database update --project './DriveItAPI/DriveItAPI.csproj' --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
           
       - name: dotnet publish
         run: dotnet publish './DriveItAPI/DriveItAPI.csproj' -c Release -o ./DriveItAPI
