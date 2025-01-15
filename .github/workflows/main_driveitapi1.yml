@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - DriveIt
+name: Build and deploy ASP.Net Core app to Azure Web App - DriveItAPI
 
 on:
   push:
     branches:
-     - main
+      - main
   workflow_dispatch:
 
 jobs:
@@ -22,22 +22,21 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build './DriveIt/DriveIt.csproj' --configuration Release
-        
+        run: dotnet build './DriveItAPI/DriveItAPI.csproj' --configuration Release
+
       - name: Run database migrations
         run: |
           dotnet tool install --global dotnet-ef
-          dotnet ef database update --project './DriveIt/DriveIt.csproj' --context ApplicationDbContext --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING_BLAZOR }}"
-          dotnet ef database update --project './DriveIt/DriveIt.csproj' --context CarRentalContext --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING_BLAZOR }}"
-
+          dotnet ef database update --project './DriveItAPI/DriveItAPI.csproj' --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+          
       - name: dotnet publish
-        run: dotnet publish './DriveIt/DriveIt.csproj' -c Release -o ./DriveIt
+        run: dotnet publish './DriveItAPI/DriveItAPI.csproj' -c Release -o ./DriveItAPI
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./DriveIt
+          path: ./DriveItAPI
 
   deploy:
     runs-on: windows-latest
@@ -57,15 +56,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_205D7A119C074BB8BE03E3A9AE607774 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_955F53843068437FBD447B0B01F2EB46 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F26B191BE5A74572881318BD5789DC90 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E6DDEEA4479041ABA3899815DC305BF8 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5DA21EAA9165487A9E2C18487D5464DE }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6AA3E5AEA91E46D88B5F1BEF4977D0A3 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DriveIt'
+          app-name: 'DriveItAPI1'
           slot-name: 'Production'
           package: .
           
