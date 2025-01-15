@@ -23,7 +23,7 @@ jobs:
 
       - name: Build with dotnet
         run: dotnet build './DriveItAPI/DriveItAPI.csproj' --configuration Release
-
+          
       - name: dotnet publish
         run: dotnet publish './DriveItAPI/DriveItAPI.csproj' -c Release -o ./DriveItAPI
 
