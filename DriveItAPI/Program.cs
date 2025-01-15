@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // TODO
-var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ??*/ builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<CarRentalContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -37,7 +37,8 @@ app.MapControllers();
 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 using (var scope = scopeFactory.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CarRentalContext>();
+
+    var db = scope.ServiceProvider.GetRequiredService<CarRentalContext>();    
     if (db.Database.EnsureCreated())
     {
         SeedData.Initialize(db);

@@ -23,7 +23,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddHttpContextAccessor();
 
 // TODO
-var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
+var URI =/* Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ??*/ "https://localhost:7289";
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
@@ -44,7 +44,12 @@ builder.Services.AddAuthentication(options =>
 })
 .AddIdentityCookies();
 
+<<<<<<< HEAD
 var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??*/  builder.Configuration.GetConnectionString("DefaultConnection");
+=======
+
+var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??*/ builder.Configuration.GetConnectionString("DefaultConnection");
+>>>>>>> 5881dfb (add employee form)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
