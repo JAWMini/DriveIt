@@ -10,13 +10,11 @@ using DriveItAPI.Model;
 
 namespace DriveItAPI.IntegrationTests
 {
-    public class CarsControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class CarsControllerTests : IntegrationTestBase
     {
-        private readonly HttpClient _client;
 
-        public CarsControllerTests(WebApplicationFactory<Program> factory)
+        public CarsControllerTests(WebApplicationFactory<Program> factory):base(factory)
         {
-            _client = factory.CreateClient();
         }
 
         [Fact]
