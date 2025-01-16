@@ -41,21 +41,21 @@ builder.Services.AddScoped<UserService>();
 
 
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddCookie("CookieAuth")
-    .AddGoogle(googleOptions =>
-    {
-        googleOptions.ClientId = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTID");
-        googleOptions.ClientSecret = /nvironment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
-    })
-    .AddIdentityCookies();
-    
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddCookie("CookieAuth")
+.AddGoogle(googleOptions =>
+{
+    googleOptions.ClientId = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTID");
+    googleOptions.ClientSecret = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
+})
+.AddIdentityCookies();
 
 
-var connectionString = /*Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ??*/ builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

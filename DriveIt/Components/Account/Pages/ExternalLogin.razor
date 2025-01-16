@@ -230,7 +230,7 @@
             RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email, ["success"] = success });
             return;
         }
-
+  
         // Logujemy użytkownika
         await SignInManager.SignInAsync(customer, isPersistent: false, externalLoginInfo.LoginProvider);
         RedirectManager.RedirectTo(ReturnUrl);

@@ -107,8 +107,6 @@ namespace DriveIt.Services
         }
 
 
-
-
         public async Task SendRentalConfirmationEmailAsync(string userEmail, Rental rental)
         {
             var emailBody = $"Rozpoczęto wypożyczenie samochodu {rental.Car.Brand} {rental.Car.Model}. Data rozpoczęcia: {rental.StartDate}.";
