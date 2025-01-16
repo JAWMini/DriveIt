@@ -17,8 +17,10 @@ namespace DriveItAPI.IntegrationTests
 
         public IntegrationTestBase(WebApplicationFactory<Program> factory)
         {
-            // Tworzymy klienta HTTP, który będzie wysyłał żądania do uruchomionej aplikacji (API)
             _client = factory.CreateClient();
+
+            var testApiKey = Environment.GetEnvironmentVariable("API_KEY");
+            _client.DefaultRequestHeaders.Add("X-Api-Key", testApiKey);
         }
     }
 
