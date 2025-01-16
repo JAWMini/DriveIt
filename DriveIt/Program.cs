@@ -28,7 +28,7 @@ builder.Services.AddScoped(sp =>
 {
     
     var client = new HttpClient { BaseAddress = new Uri(URI) };
-    client.DefaultRequestHeaders.Add("X-Api-Key", /*Environment.GetEnvironmentVariable("API_KEY")*/ );
+    client.DefaultRequestHeaders.Add("X-Api-Key", Environment.GetEnvironmentVariable("API_KEY") );
     return client;
 }
 );
