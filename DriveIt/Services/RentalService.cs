@@ -3,7 +3,6 @@ using DriveIt.DTOs;
 using DriveIt.EmailSenders;
 using DriveIt.Model;
 using Microsoft.AspNetCore.Components;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 
@@ -106,8 +105,6 @@ namespace DriveIt.Services
 
             return true;
         }
-
-
 
 
         public async Task SendRentalConfirmationEmailAsync(string userEmail, Rental rental)

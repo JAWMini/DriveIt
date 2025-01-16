@@ -37,5 +37,9 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
+  },
+  "ApiKeys": {
+    "Key1": "12345",
+    "Key2": "fdsfdsfsdfda"
   }
 }

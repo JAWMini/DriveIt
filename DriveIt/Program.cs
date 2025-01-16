@@ -24,7 +24,14 @@ builder.Services.AddHttpContextAccessor();
 
 // TODO
 var URI = Environment.GetEnvironmentVariable("DRIVEITAPI_URI") ?? "https://localhost:7289";
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(URI) });
+builder.Services.AddScoped(sp =>
+{
+    
+    var client = new HttpClient { BaseAddress = new Uri(URI) };
+    client.DefaultRequestHeaders.Add("X-Api-Key", /*Environment.GetEnvironmentVariable("API_KEY")*/ );
+    return client;
+}
+);
 builder.Services.AddScoped<CarService>();
 builder.Services.AddScoped<OfferService>();
 builder.Services.AddScoped<TokenService>();
@@ -45,6 +52,7 @@ builder.Services.AddAuthentication(options =>
     googleOptions.ClientSecret = Environment.GetEnvironmentVariable("AUTHENTICATION_GOOGLE_CLIENTSECRET");
 })
 .AddIdentityCookies();
+
 
 var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING_BLAZOR") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 

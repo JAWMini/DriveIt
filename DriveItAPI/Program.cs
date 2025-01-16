@@ -1,4 +1,5 @@
 using DriveItAPI.Data;
+using DriveItAPI.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -12,7 +13,6 @@ public class Program
 
         builder.Services.AddControllers();
 
-        // TODO
         var connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<CarRentalContext>(options =>
             options.UseSqlServer(connectionString));
@@ -30,10 +30,12 @@ public class Program
             app.UseSwaggerUI();
         }
 
+
+        List<String> APIKeys = [Environment.GetEnvironmentVariable("API_KEY_1"), Environment.GetEnvironmentVariable("API_KEY_2")];
+       
+        app.UseMiddleware<ApiKeyMiddleware>(APIKeys);
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
         app.MapControllers();
 
 

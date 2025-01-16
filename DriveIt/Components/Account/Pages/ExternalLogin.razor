@@ -181,6 +181,7 @@
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(customer, Input.Email, CancellationToken.None);
 
+
         // Tworzymy użytkownika w bazie bez hasła
         var result = await UserManager.CreateAsync(customer);
         if (!result.Succeeded)
@@ -218,12 +219,18 @@
             success = false;
         }
 
+        if(success)
+        {
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+            await UserManager.AddToRoleAsync(user, "User");
+        }
+
         if (UserManager.Options.SignIn.RequireConfirmedAccount)
         {
             RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email, ["success"] = success });
             return;
         }
-
+  
         // Logujemy użytkownika
         await SignInManager.SignInAsync(customer, isPersistent: false, externalLoginInfo.LoginProvider);
         RedirectManager.RedirectTo(ReturnUrl);
