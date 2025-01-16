@@ -21,10 +21,7 @@ namespace DriveItAPI.IntegrationTests
             _client = factory.CreateClient();
         }
     }
-}
 
-namespace DriveItAPI.IntegrationTests
-{
     public class OffersControllerTests : IntegrationTestBase
     {
         public OffersControllerTests(WebApplicationFactory<Program> factory)
